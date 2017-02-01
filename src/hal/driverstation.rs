@@ -1,13 +1,14 @@
 //! This module ports WPILIB's `HAL/DriverStation.h` to Rust
 
 use raw::*;
-use hal::error::{ HalResult, HalError };
+use hal::error::*;
 
 use std::ffi::CString;
 use std::mem;
 
 use time::Duration;
 
+/// The maximum amount of axes that a controller can have. Realistically, this is 3 or 4.
 pub const MAX_JOYSTICK_AXES: usize = 12;
 pub const MAX_JOYSTICK_POVS: usize = 12;
 
@@ -19,23 +20,21 @@ pub enum AllianceStation {
 }
 
 // TODO: More insightful comments
-/// What modes the driver station is in. Only one of `enabled`, `autonomous`, `test`, and `e_stop`
+/// What modes the driver station is in. Only one of `enabled`, `autonomous`, `test`, and `stopped`
 /// should be on at a time.
-///
-/// ## Fields
-/// * `enabled` - Whether the driver station is enabled
-/// * `autonomous` - Whether the driver station is in autonomous mode
-/// * `test` - Whether the driver station is in test mode
-/// * `e_stop` - Whether the driver station is stopped
-/// * `fms_attached` - Whether the Field Managment System is attached
-/// * `ds_attached` - Whether the Driver STation is attached
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ControlWord {
+    /// Whether the driver station is enabled
     pub enabled: bool,
+    /// Whether the driver station is in autonomous mode
     pub autonomous: bool,
+    /// Whether the driver station is in test mode
     pub test: bool,
-    pub e_stop: bool,
+    /// Whether the driver station is stopped
+    pub stopped: bool,
+    /// Whether the Field Managment System is attached
     pub fms_attached: bool,
+    /// Whether the Driver STation is attached
     pub ds_attached: bool
 }
 
@@ -46,8 +45,9 @@ pub enum JoystickType {
 }
 
 // TODO: Model of the joystick?
-/// Represents the rotation on different "axes" of a joystick. On *our* joysticks:
+/// Represents the rotation on different "axes" of a joystick.
 ///
+/// On *our* joysticks:
 /// * 1: Rotation in the x direction
 /// * 2: Rotation in the y direction
 /// * 3: Paddle at bottom of joystick
@@ -122,7 +122,7 @@ impl ControlWord {
             enabled: false,
             autonomous: false,
             test: false,
-            e_stop: false,
+            stopped: false,
             fms_attached: false,
             ds_attached: false
         }
@@ -136,7 +136,7 @@ impl From<HAL_ControlWord> for ControlWord {
             enabled: raw.enabled() != 0,
             autonomous: raw.autonomous() != 0,
             test: raw.test() != 0,
-            e_stop: raw.eStop() != 0,
+            stopped: raw.eStop() != 0,
             fms_attached: raw.fmsAttached() != 0,
             ds_attached: raw.dsAttached() != 0
         }
@@ -196,6 +196,7 @@ pub fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResu
     hal_status_return_call!(HAL_SetErrorData(CString::new(errors).map_err(|err| HalError::from(err))?.as_ptr(), errors_length, wait_ms))
 }
 
+/// Gets a joystick's descriptor from the driver station
 pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
     let mut descriptor = unsafe { mem::uninitialized() };
     hal_status_return_call!(HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut HAL_JoystickDescriptor))?;
@@ -203,6 +204,8 @@ pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescripto
     Ok(JoystickDescriptor::from(descriptor))
 }
 
+/// Gets the rotations on each "axis" of a joystick. An axis is basically just something that can
+/// be somewhere in a range of values.
 pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
     let mut raw_axes = unsafe { mem::uninitialized() };
     hal_status_return_call!(HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut HAL_JoystickAxes))?;
@@ -217,6 +220,7 @@ pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
     Ok(JoystickPovs::from(raw_povs))
 }
 
+/// Gets what buttons are pressed on a joystick
 pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
     let mut raw_buttons: HAL_JoystickButtons = unsafe { mem::uninitialized() };
     hal_status_return_call!(HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut HAL_JoystickButtons))?;
@@ -224,23 +228,27 @@ pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
     Ok(JoystickButtons::from(raw_buttons))
 }
 
+/// Gets whether the joystick is an xbox controller or not
 pub fn get_joystick_is_xbox(joystick_num: i32) -> HalResult<bool> {
     Ok(get_joystick_descriptor(joystick_num)?.is_xbox)
 }
 
+/// TODO: Figure out what a joystick type is
 pub fn get_joystick_type(joystick_num: i32) -> HalResult<JoystickType> {
     Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.stick_type))
 }
 
+/// Gets the name of a joystick. This will return a string with a length no greater than 256.
 pub fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
     Ok(get_joystick_descriptor(joystick_num)?.name)
 }
 
+/// TODO: Figure out what a joystick type is
 pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<JoystickType> {
     if axis >= 0 {
         Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.axis_types[axis as usize] as i32))
     } else {
-        Err(HalError::IndexOutOfRange)
+        Err(HalError::Hal(FfiError::ParameterOutOfRange))
     }
 }
 
@@ -279,14 +287,15 @@ pub fn get_control_word() -> HalResult<ControlWord> {
 ///
 /// ## Example
 /// ```
-/// let (tx, rx) = mpsc::channel::<i32>();
+/// // create a channelfor doing concurrent locking
+/// let (tx, rx) = mpsc::channel::<()>();
 /// thread::spawn(|| {
 ///     let thread_tx = tx.clone();
-///     let count = 0;
 ///     loop {
+///         // Wait for the DS data to update
 ///         wait_for_ds_data();
-///         thread_tx.send(count).unwrap();
-///         count += 1;
+///         // And then send an "unlock" to the receiver
+///         thread_tx.send(()).unwrap();
 ///     }
 /// });
 /// ```
@@ -309,7 +318,7 @@ pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &s
         print_message as HAL_Bool))
 }
 
-/// returns where the driver station thinks it is.
+/// Gets where the driver station thinks it is.
 pub fn get_alliance_station() -> HalResult<AllianceStation> {
     let station_id = hal_status_pointer_call!(HAL_GetAllianceStation())?;
 
@@ -325,7 +334,7 @@ pub fn get_alliance_station() -> HalResult<AllianceStation> {
     })
 }
 
-/// Get the match time so far. This is not the *actual* match time, just an approximation of it.
+/// Gets the match time so far. This is not the *actual* match time, just an approximation of it.
 /// Since this is not the canonical match time, it cannot be used to dispute times or garuntee
 /// that a task completes before the match runs out.
 pub fn get_match_time_approx() -> HalResult<Duration> {

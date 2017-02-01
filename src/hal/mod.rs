@@ -1,4 +1,4 @@
 #[macro_use]
-mod error;
+pub mod error;
 
-mod driverstation;
+pub mod driverstation;

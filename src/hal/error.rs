@@ -6,6 +6,8 @@ pub type HalResult<T> = Result<T, HalError>;
 
 // Because it turns out WPILIB is really messy and have two ways of indicating failure...
 // Or not at all...
+
+/// Wraps the variant of HAL functions that take a status pointer and set its status
 macro_rules! hal_status_pointer_call {
     ($function:ident($($arg:expr),*)) => {{
         let mut status = 0;
@@ -14,6 +16,7 @@ macro_rules! hal_status_pointer_call {
     }};
 }
 
+/// Wraps the variant of HAL functions that return a status code
 macro_rules! hal_status_return_call {
     ($function:ident($($arg:expr),*)) => {{
         let status = unsafe { $function($($arg,)*) };
@@ -23,6 +26,7 @@ macro_rules! hal_status_return_call {
 
 // FIXME: Is the i32 that's returned actually a status code?
 
+/// An error as emitted by WPILIB
 pub enum FfiError {
     SampleRateTooHigh,
     VoltageOutOfRange,
@@ -52,10 +56,12 @@ pub enum FfiError {
     Unknown(i32)
 }
 
+/// An aggregate type that represents all types of errors that could be returned by this crate
 pub enum HalError {
+    /// An FFI error
     Hal(FfiError),
-    NullError(NulError),
-    IndexOutOfRange
+    /// A string that was provided contained a null byte and could not be converted into a CString
+    NullError(NulError)
 }
 
 impl From<i32> for HalError {
