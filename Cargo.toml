@@ -1,0 +1,7 @@
+[package]
+name = "wpilib-sys"
+version = "0.1.0"
+authors = ["XavilPergis <max.duzen@gmail.com>"]
+
+[dependencies]
+time = "*"
