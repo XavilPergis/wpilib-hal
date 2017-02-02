@@ -10,13 +10,20 @@ use time::Duration;
 
 /// The maximum amount of axes that a controller can have. Realistically, this is 3 or 4.
 pub const MAX_JOYSTICK_AXES: usize = 12;
+/// The maximum amount of POVs that a controller can have. POVs are the little D-pad like things
+/// on the top of the joystick.
 pub const MAX_JOYSTICK_POVS: usize = 12;
 
 /// Where the driver station is on the field. Either `Red` or `Blue` with a position from 1 to 3
 /// or an invalid station.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum AllianceStation {
-    Red(u8), Blue(u8), Invalid
+    /// Red alliance station
+    Red(u8),
+    /// Blue alliance station
+    Blue(u8),
+    /// Invalid station
+    Invalid
 }
 
 // TODO: More insightful comments
@@ -41,13 +48,13 @@ pub struct ControlWord {
 /// TODO: Figure out what a joystick type actually is
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum JoystickType {
+    /// An unknown type of joystick. TODO: What is this?
     Unknown(i32)
 }
 
-// TODO: Model of the joystick?
 /// Represents the rotation on different "axes" of a joystick.
 ///
-/// On *our* joysticks:
+/// On Extreme 3D Pro joysticks:
 /// * 1: Rotation in the x direction
 /// * 2: Rotation in the y direction
 /// * 3: Paddle at bottom of joystick
@@ -67,8 +74,10 @@ impl From<HAL_JoystickAxes> for JoystickAxes {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Hash)]
+///
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct JoystickPovs {
+    /// Turns out, each element is actually the angle of the POV in degrees.
     povs: [i16; MAX_JOYSTICK_POVS],
     count: i16
 }
@@ -95,10 +104,15 @@ pub struct JoystickButtons {
 /// What mode the user program is running in.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum UserProgramMode {
+    /// The user program is starting
     Starting,
+    /// The user program is disabled
     Disabled,
+    /// The user program is in autonomous mode
     Autonomous,
+    /// The user proram is in tele-operated mode
     Teleop,
+    /// The user program is in test mode
     Test
 }
 
@@ -152,14 +166,6 @@ impl From<i32> for JoystickType {
     }
 }
 
-impl JoystickButtons {
-    #[inline]
-    pub fn count(&self) -> u16 {
-        // HAL should never give us more buttons than can fit in a u16
-        self.buttons_down.len() as u16
-    }
-}
-
 impl From<HAL_JoystickButtons> for JoystickButtons {
     fn from(raw_buttons: HAL_JoystickButtons) -> JoystickButtons {
         let mut buttons = JoystickButtons {
@@ -192,8 +198,9 @@ impl From<HAL_JoystickDescriptor> for JoystickDescriptor {
     }
 }
 
+/// TODO: What is this?
 pub fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
-    hal_status_return_call!(HAL_SetErrorData(CString::new(errors).map_err(|err| HalError::from(err))?.as_ptr(), errors_length, wait_ms))
+    hal_status_return_call!(HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms))
 }
 
 /// Gets a joystick's descriptor from the driver station
@@ -213,6 +220,7 @@ pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
     Ok(JoystickAxes::from(raw_axes))
 }
 
+/// Gets the state of all the POVs on the joystick.
 pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
     let mut raw_povs = unsafe { mem::uninitialized() };
     hal_status_return_call!(HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut HAL_JoystickPOVs))?;
@@ -308,9 +316,9 @@ pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &s
     // CString::new() will return an `Err(NulError)` if there is a `\0` in the string passed in
     // Since this is a struct type error, it means that only `Err(NulError)` should ever be passed
     // in so we can safely transmute `NulError` into `HalError::NullError`
-    let details_raw = CString::new(details).map_err(|err| HalError::from(err))?;
-    let location_raw = CString::new(location).map_err(|err| HalError::from(err))?;
-    let call_stack_raw = CString::new(call_stack).map_err(|err| HalError::from(err))?;
+    let details_raw = CString::new(details).map_err(HalError::from)?;
+    let location_raw = CString::new(location).map_err(HalError::from)?;
+    let call_stack_raw = CString::new(call_stack).map_err(HalError::from)?;
 
     // TODO: Will the pointers be dropped here? I don't *think* so?
     hal_status_return_call!(HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,

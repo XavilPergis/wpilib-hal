@@ -5,3 +5,4 @@ authors = ["XavilPergis <max.duzen@gmail.com>"]
 
 [dependencies]
 time = "*"
+clippy = { version = "*", optional = true }

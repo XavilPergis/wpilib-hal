@@ -27,6 +27,7 @@ macro_rules! hal_status_return_call {
 // FIXME: Is the i32 that's returned actually a status code?
 
 /// An error as emitted by WPILIB
+#[allow(missing_docs)]
 pub enum FfiError {
     SampleRateTooHigh,
     VoltageOutOfRange,
