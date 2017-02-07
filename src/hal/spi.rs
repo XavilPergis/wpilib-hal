@@ -1,166 +1,96 @@
-use std::io::{ self, Read, Write, ErrorKind };
-use std::iter::Iterator;
-use std::io::Error as IoError;
-use std::error::Error;
-use raw::{ HAL_ReadSPI, HAL_WriteSPI, HAL_CloseSPI, HAL_SetSPISpeed };
-use hal::wrapper::spi;
+use ::raw::*;
 
-lazy_static! {
-    static ref INITIALIZED_SPI_PORTS: Vec<i32> = Vec::new();
+// TODO: handle thingy?
+pub fn initialize_spi(port: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_InitializeSPI(port) ]
 }
 
-/// Which port the SPI is plugged into
-#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
-pub enum SpiPort {
-    CS0,
-    CS1,
-    CS2,
-    CS3,
-    MXP
+pub fn write_spi(port: i32, data_to_send: &[u8], send_size: i32) -> i32 {
+    // trick the compiler; the data we're sending *isn't actually mutable*
+    unsafe { HAL_WriteSPI(port, data_to_send.as_ptr() as *mut u8, send_size) }
 }
 
-impl SpiPort {
-    pub fn get_port(&self) -> i32 {
-        match self {
-            SpiPort::CS0 => 0,
-            SpiPort::CS1 => 1,
-            SpiPort::CS2 => 2,
-            SpiPort::CS3 => 3,
-            SpiPort::MXP => 4
-        }
-    }
+pub fn read_spi(port: i32, buffer: &mut [u8], count: i32) -> i32 {
+    unsafe { HAL_ReadSPI(port, buffer.as_mut_ptr(), count) }
 }
 
-/// Options for an SPI
-#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
-pub struct SpiOptions {
-    /// The number of bytes to read per call
-    pub read_size: i32
+pub fn close_spi(port: i32) {
+    unsafe { raw::HAL_CloseSPI(port) }
 }
 
-impl Default for SpiOptions {
-    fn default() -> Self {
-        SpiOptions {
-            read_size: 1
-        }
-    }
+pub fn set_spi_speed(port: i32, speed: i32) {
+    unsafe { HAL_SetSPISpeed(port, speed) }
 }
 
-/// Shallow SPI IO error
-#[derive(Copy, Clone, Debug)]
-pub enum SpiError {
-    /// Error reading from an SPI
-    ReadError,
-    /// Error writing to an SPI
-    WriteError
+pub fn set_spi_opts(port: i32, msb_first: bool, sample_on_trailing: bool, clock_idle_high: bool) {
+    unsafe { HAL_SetSPIOpts(port, msb_first as HAL_Bool, sample_on_trailing as HAL_Bool, clock_idle_high as HAL_Bool) }
 }
 
-impl Error for SpiError {
-    fn description(&self) -> &str {
-        match self {
-            SpiError::ReadError => "SPI Read error",
-            SpiError::WriteError => "SPI Write Error"
-        }
-    }
+pub fn set_spi_chip_select_active_high(port: i32) {
+    unsafe { HAL_SetSPIChipSelectActiveHigh(port) }
 }
 
-/// Represents an SPI on the robot; there should only ever be the 4 on the RoboRIO
-pub struct HalSpi {
-    /// The port of this SPI
-    port: SpiPort,
-    /// Options for this SPI
-    opts: SpiOptions
+pub fn set_spi_chip_select_active_low(port: i32) {
+    unsafe { HAL_SetSPIChipSelectActiveLow(port) }
 }
 
-impl HalSpi {
-    /// Construct and initialize a serial port with the default settings
-    pub fn new(port: SpiPort) -> Option<HalSpi> {
-        if INITIALIZED_SPI_PORTS.contains(port.get_port()) {
-            None
-        } else {
-            spi::initialize_spi(port.get_port());
-
-            Some(HalSpi {
-                port: port,
-                opts: Default::default()
-            })
-        }
-    }
-
-    /// Creates a new SPI instance from a port number
-    ///
-    /// ## Unsafety
-    /// Trying to read or write to the same SPI port at the same time from two different threads
-    /// would cause a data race. The actual initialization is not unsafe.
-    pub unsafe fn new_raw(port: i32, opts: SpiOptions) -> HalSpi {
-        spi::initialize_spi(port);
-
-        HalSpi {
-            port: port,
-            opts: opts
-        }
-    }
-
-    /// Set the clock speed of this SPI
-    pub fn set_speed(&self, speed: i32) {
-        unsafe { HAL_SetSPISpeed(self.port, speed) };
-    }
-
-    /// Set this SPI's options
-    pub fn set_opts(&self, msb_first: bool, sample_on_trailing: bool, clock_idle_high: bool) {
-        spi::set_spi_opts(self.port, msb_first, sample_on_trailing, clock_idle_high);
-    }
-
-    pub fn set_chip_select_active_high(&self) {
-        spi::set_spi_chip_select_active_high(self.port);
-    }
-
-    /// Get this SPI's handle
-    pub fn get_handle(&self) -> i32 {
-        spi::get_spi_handle(self.port)
-    }
-
-    /// Set this SPI's handle
-    pub fn set_handle(&self, handle: i32) {
-        spi::set_spi_handle(self.port, handle);
-    }
+pub fn get_spi_handle(port: i32) -> i32 {
+    unsafe { HAL_GetSPIHandle(port) }
 }
 
-// TODO: Cross-thread sharing?
-// Probably can't share across threads
-impl !Sync for HalSpi {}
-impl !Sync for HalSpi {}
-
-impl Read for HalSpi {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let read = spi::write_spi(self.port, buf, self.opts.size);
-
-        if read <= -1 {
-            Err(IoError::new(ErrorKind::Other, SpiError::ReadError))
-        } else {
-            Ok(read as usize)
-        }
-    }
+pub fn set_spi_handle(port: i32, handle: i32) {
+    unsafe { HAL_SetSPIHandle(port, handle) }
 }
 
-impl Write for HalSpi {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let written = spi::write_spi(self.port, buf, buf.len());
-
-        if written <= -1 {
-            Err(IoError::new(ErrorKind::Other, SpiError::WriteError))
-        } else {
-            Ok(written as usize)
-        }
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
+#[derive(Debug)]
+pub struct SpiAccumulatorOptions {
+    period: i32,
+    cmd: i32,
+    transfer_size: i32,
+    valid_mask: i32,
+    valid_value: i32,
+    data_shift: i32,
+    data_size: i32,
+    is_signed: bool,
+    big_endian: bool
 }
 
-impl Drop for HalSpi {
-    fn drop(&mut self) {
-        HAL_CloseSPI(self.port);
-    }
+pub fn init_spi_accumulator(port: i32, opts: SpiAccumulatorOptions) {
+    unsafe { HAL_InitSPIAccumulator() }
+}
+
+pub fn free_spi_accumulator(port: i32) {
+    unsafe { HAL_FreeSPIAccumulator() }
+}
+
+pub fn reset_spi_accumulator(port: i32) {
+    unsafe { HAL_ResetSPIAccumulator() }
+}
+
+pub fn set_spi_accumulator_center(port: i32, center: i32) {
+    unsafe { HAL_SetSPIAccumulatorCenter() }
+}
+
+pub fn set_spi_accumulator_deadband(port: i32, deadband: i32) {
+    unsafe { HAL_SetSPIAccumulatorDeadband() }
+}
+
+pub fn hal_get_spi_accumulator_last_value(port: i32) -> HalResult<i32> {
+    hal_call![ ptr HAL_GetSPIAccumulatorLastValue() ]
+}
+
+pub fn hal_get_spi_accumulator_value(port: i32) -> HalResult<i64> {
+    hal_call![ ptr HAL_GetSPIAccumulatorValue() ]
+}
+
+pub fn hal_get_spi_accumulator_count(port: i32) -> HalResult<i64> {
+    hal_call![ ptr HAL_GetSPIAccumulatorCount() ]
+}
+
+pub fn hal_get_spi_accumulator_average(port: i32) -> HalResult<f64> {
+    hal_call![ ptr HAL_GetSPIAccumulatorAverage() ]
+}
+
+pub fn get_spi_accumulator_output(port: i32, value: *mut i64, count: *mut i64) {
+    unsafe { HAL_GetSPIAccumulatorOutput(port, &mut value) }
 }

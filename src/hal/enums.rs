@@ -3,7 +3,6 @@ use raw::*;
 pub type RawAnalogTriggerType = HAL_AnalogTriggerType;
 pub type RawCounterMode = HAL_Counter_Mode;
 pub type RawRuntimeType = HAL_RuntimeType;
-pub type RawAccelerometerRange = HAL_AccelerometerRange;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum AnalogTriggerType {
@@ -47,23 +46,6 @@ impl From<RawRuntimeType> for RuntimeType {
         match raw {
             RawRuntimeType::HAL_Athena => RuntimeType::Native,
             RawRuntimeType::HAL_Mock => RuntimeType::Mock,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
-pub enum AccelerometerRange {
-    AccelerometerRange2G,
-    AccelerometerRange4G,
-    AccelerometerRange8G
-}
-
-impl From<RawAccelerometerRange> for AccelerometerRange {
-    fn from(raw: RawAccelerometerRange) -> Self {
-        match raw {
-            RawAccelerometerRange::HAL_AccelerometerRange_k2G => AccelerometerRange::AccelerometerRange2G,
-            RawAccelerometerRange::HAL_AccelerometerRange_k4G => AccelerometerRange::AccelerometerRange4G,
-            RawAccelerometerRange::HAL_AccelerometerRange_k8G => AccelerometerRange::AccelerometerRange8G,
         }
     }
 }

@@ -1,1 +1,241 @@
+//! This module ports WPILIB's `HAL/DriverStation.h` to Rust
 
+use raw::*;
+use hal::error::*;
+
+use std::ffi::CString;
+use std::mem;
+
+use time::Duration;
+
+/// The maximum amount of axes that a controller can have. Realistically, this is 3 or 4.
+pub const MAX_JOYSTICK_AXES: usize = 12;
+/// The maximum amount of POVs that a controller can have. POVs are the little D-pad like things
+/// on the top of the joystick.
+pub const MAX_JOYSTICK_POVS: usize = 12;
+
+/// Where the driver station is on the field. Either `Red` or `Blue` with a position from 1 to 3
+/// or an invalid station.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum AllianceStation {
+    /// Red alliance station
+    Red(u8),
+    /// Blue alliance station
+    Blue(u8),
+    /// Invalid station
+    Invalid
+}
+
+// TODO: More insightful comments
+/// What modes the driver station is in. Only one of `enabled`, `autonomous`, `test`, and `stopped`
+/// should be on at a time.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct ControlWord {
+    /// Whether the driver station is enabled
+    pub enabled: bool,
+    /// Whether the driver station is in autonomous mode
+    pub autonomous: bool,
+    /// Whether the driver station is in test mode
+    pub test: bool,
+    /// Whether the driver station is stopped
+    pub stopped: bool,
+    /// Whether the Field Managment System is attached
+    pub fms_attached: bool,
+    /// Whether the Driver Station is attached
+    pub ds_attached: bool
+}
+
+/// TODO: Figure out what a joystick type actually is
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum JoystickType {
+    /// An unknown type of joystick. TODO: What is this?
+    Unknown(i32)
+}
+
+/// What mode the user program is running in.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum UserProgramMode {
+    /// The user program is starting
+    Starting,
+    /// The user program is disabled
+    Disabled,
+    /// The user program is in autonomous mode
+    Autonomous,
+    /// The user proram is in tele-operated mode
+    TeleOperated,
+    /// The user program is in test mode
+    Test
+}
+
+// TODO: What is this?
+pub fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
+    hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ]
+}
+
+/// Gets a joystick's descriptor from the driver station
+pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
+    let mut descriptor = unsafe { mem::zeroed() };
+    hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut HAL_JoystickDescriptor))?;
+
+    Ok(JoystickDescriptor::from(descriptor))
+}
+
+/// Gets the rotations on each "axis" of a joystick. An axis is basically just something that can
+/// be somewhere in a range of values.
+pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
+    let mut raw_axes = unsafe { mem::zeroed() };
+    hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut HAL_JoystickAxes))?;
+
+    Ok(JoystickAxes::from(raw_axes))
+}
+
+/// Gets the state of all the POVs on the joystick.
+pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
+    let mut raw_povs = unsafe { mem::zeroed() };
+    hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut HAL_JoystickPOVs))?;
+
+    Ok(JoystickPovs::from(raw_povs))
+}
+
+/// Gets what buttons are pressed on a joystick
+pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
+    let mut raw_buttons: HAL_JoystickButtons = unsafe { mem::zeroed() };
+    hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut HAL_JoystickButtons))?;
+
+    Ok(JoystickButtons::from(raw_buttons))
+}
+
+/// Gets whether the joystick is an xbox controller or not
+pub fn get_joystick_is_xbox(joystick_num: i32) -> HalResult<bool> {
+    Ok(get_joystick_descriptor(joystick_num)?.is_xbox)
+}
+
+/// TODO: Figure out what a joystick type is
+pub fn get_joystick_type(joystick_num: i32) -> HalResult<JoystickType> {
+    Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.stick_type))
+}
+
+/// Gets the name of a joystick. This will return a string with a length no greater than 256.
+pub fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
+    Ok(get_joystick_descriptor(joystick_num)?.name)
+}
+
+// TODO: Figure out what a joystick type is
+pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<JoystickType> {
+    if axis >= 0 {
+        Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.axis_types[axis as usize] as i32))
+    } else {
+        Err(HalError::Hal(FfiError::ParameterOutOfRange))
+    }
+}
+
+// TODO: What is this?
+pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) -> HalResult<()> {
+    hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble))
+}
+
+// TODO: What are we actually observing? This should be called in the main DS loop
+pub fn observe_user_program(mode: UserProgramMode) {
+    match mode {
+        UserProgramMode::Starting => self::observe_user_program_starting(),
+        UserProgramMode::Disabled => self::observe_user_program_disabled(),
+        UserProgramMode::Autonomous => self::observe_user_program_autonomous(),
+        UserProgramMode::TeleOperated => self::observe_user_program_teleop(),
+        UserProgramMode::Test => self::observe_user_program_test()
+    }
+}
+
+/// Initialize the driver station. Should only be called once.
+pub fn initialize_driver_station() {
+    unsafe { HAL_InitializeDriverStation() };
+}
+
+/// Gets a control word directly from the driver station. The result should be cached for ~50ms
+pub fn get_control_word() -> HalResult<ControlWord> {
+    let mut control_word: HAL_ControlWord = unsafe { mem::zeroed() };
+    hal_call!(ret HAL_GetControlWord(&mut control_word as *mut HAL_ControlWord))?;
+
+    Ok(ControlWord::from(control_word))
+}
+
+/// Blocks until the DS returns some data. Good for building concurrent abstractions.
+///
+/// ## Example
+/// ```
+/// // create a channel for doing concurrent locking
+/// let (tx, rx) = mpsc::channel::<()>();
+/// thread::spawn(|| {
+///     let thread_tx = tx.clone();
+///     loop {
+///         // Wait for the DS data to update
+///         wait_for_ds_data();
+///         // And then send an "unlock" to the receiver
+///         thread_tx.send(()).unwrap();
+///     }
+/// });
+/// ```
+pub fn wait_for_ds_data() {
+    unsafe { HAL_WaitForDSData() };
+}
+
+/// Reports an error to the driver station
+pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &str, location: &str, call_stack: &str, print_message: bool) -> Result<(), HalError> {
+    // CString::new() will return an `Err(NulError)` if there is a `\0` in the string passed in
+    // Since this is a struct type error, it means that only `Err(NulError)` should ever be passed
+    // in so we can safely transmute `NulError` into `HalError::NullError`
+    let details_raw = CString::new(details).map_err(HalError::from)?;
+    let location_raw = CString::new(location).map_err(HalError::from)?;
+    let call_stack_raw = CString::new(call_stack).map_err(HalError::from)?;
+
+    // TODO: Will the pointers be dropped here? I don't *think* so?
+    hal_call!(ret HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,
+    details_raw.as_ptr(), location_raw.as_ptr(), call_stack_raw.as_ptr(),
+    print_message as HAL_Bool))
+}
+
+/// Gets where the driver station thinks it is.
+pub fn get_alliance_station() -> HalResult<AllianceStation> {
+    let station_id = hal_call!(ptr HAL_GetAllianceStation())?;
+
+    use ::raw::HAL_AllianceStationID;
+
+    Ok(match station_id {
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed1 => AllianceStation::Red(1),
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed2 => AllianceStation::Red(2),
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed3 => AllianceStation::Red(3),
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue1 => AllianceStation::Blue(1),
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue2 => AllianceStation::Blue(2),
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue3 => AllianceStation::Blue(3)
+    })
+}
+
+/// Gets the match time so far. This is not the *actual* match time, just an approximation of it.
+/// Since this is not the canonical match time, it cannot be used to dispute times or garuntee
+/// that a task completes before the match runs out.
+pub fn get_match_time_approx() -> HalResult<Duration> {
+    let time = hal_call![ ptr HAL_GetMatchTime() ]?;
+
+    // TODO: What the hell are the units that are returned!? Probably seconds...
+    let time_ns = (time * 1_000_000_000f64) as i64;
+    Ok(Duration::nanoseconds(time_ns))
+}
+
+pub fn observe_user_program_starting() {
+    unsafe { HAL_ObserveUserProgramStarting() }
+}
+
+pub fn observe_user_program_disabled() {
+    unsafe { HAL_ObserveUserProgramDisabled() }
+}
+
+pub fn observe_user_program_autonomous() {
+    unsafe { HAL_ObserveUserProgramAutonomous() }
+}
+
+pub fn observe_user_program_teleop() {
+    unsafe { HAL_ObserveUserProgramTeleop() }
+}
+
+pub fn observe_user_program_test() {
+    unsafe { HAL_ObserveUserProgramTest() }
+}
