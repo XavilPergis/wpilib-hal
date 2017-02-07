@@ -1,16 +1,13 @@
-use raw::*;
-use hal::enums::*;
-use hal::structs::*;
-use hal::error::*;
-use std::ffi::{CStr, CString};
-use std::mem;
-use hal::serial::SerialPort;
+pub use raw::*;
+pub use hal::enums::*;
+pub use hal::structs::*;
+pub use hal::error::*;
+pub use std::ffi::{CStr, CString};
+pub use std::mem;
+pub use hal::serial::SerialPort;
 
 pub mod accelerometer {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    use super::*;
 
     pub fn set_accelerometer_active(active: bool) {
         unsafe { HAL_SetAccelerometerActive(active as HAL_Bool) }
@@ -34,10 +31,7 @@ pub mod accelerometer {
 }
 
 pub mod accumulator {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    use super::*;
 
     pub fn is_accumulator_channel(port: AnalogInputHandle) -> HalResult<bool> {
         hal_call![ ptr HAL_IsAccumulatorChannel(port.get_handle()) ].map(|n| n != 0)
@@ -74,11 +68,7 @@ pub mod accumulator {
 //                                status: *mut i32);
 
 pub mod analog_gyro {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
-    use super::analog_input::AnalogInput;
+    use super::*;
 
     pub struct AnalogGyro {
         port: GyroHandle
@@ -148,10 +138,7 @@ pub mod analog_gyro {
 }
 
 pub mod analog_input {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    use super::*;
 
     // TODO: rait or struct?
     pub trait AnalogInput {
@@ -258,6 +245,8 @@ pub mod analog_input {
 
 pub mod analog_output {
 
+    use super::*;
+
     pub trait AnalogOutput {
         fn get(&self) -> HalResult<f64>;
         fn set(&mut self) -> HalResult<()>;
@@ -285,10 +274,8 @@ pub mod analog_output {
 }
 
 pub mod analog_trigger {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    
+    use super::*;
 
     //pub fn initialize_analog_trigger(handle: AnalogInputHandle)
     // FIXME
@@ -334,10 +321,7 @@ pub mod analog_trigger {
 
 pub mod can {
 
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    use super::*;
 
     pub struct CANStreamMessage {
         pub message_id: u32,
@@ -503,10 +487,8 @@ pub mod can {
 }
 
 pub mod compressor {
-    use raw::*;
-    use hal::enums::*;
-    use hal::structs::*;
-    use hal::error::*;
+    
+    use super::*;
 
     pub fn initialize_compressor(module: i32) -> HalResult<CompressorHandle> {
         hal_call![ ptr HAL_InitializeCompressor(module) ]
@@ -567,6 +549,9 @@ pub fn get_system_clock_ticks_per_microsecond() -> i32 {
 }
 
 pub mod counter {
+
+    use super::*;
+
     // FIXME
     pub fn initialize_counter(mode: CounterMode, index: *mut i32) -> HalResult<HAL_CounterHandle> {
         hal_call![ ptr HAL_InitializeCounter(mode.into()) ]
@@ -662,6 +647,9 @@ pub mod counter {
 }
 
 pub mod dio {
+
+    use super::*;
+
     pub fn initialize_dio_port(handle: PortHandle, input: bool) -> HalResult<DigitalHandle> {
         hal_call![ ptr HAL_InitializeDIOPort(handle.get_handle(), input as HAL_Bool) ].map(From::from)
     }
@@ -981,7 +969,8 @@ pub mod driverstation {
 
 /// Raw bindings to I2C functions
 pub mod i2c {
-    use raw::*;
+
+    use super::*;
 
     pub fn initialize_i2c(port: i32) -> HalResult<()> {
         hal_call![ ptr HAL_InitializeI2C(port) ]
@@ -1057,7 +1046,7 @@ pub mod interrupt {
 }
 
 pub mod notifier {
-    use raw::*;
+    use super::*;
 
     pub trait InterruptHandlerFunction {
 
@@ -1090,6 +1079,9 @@ pub mod notifier {
 }
 
 pub mod pdp {
+    
+    use super::*;
+
     pub fn initialize_pdp(module: i32) -> HalResult<()> {
         hal_call![ ptr HAL_InitializePDP(module) ]
     }
@@ -1136,6 +1128,9 @@ pub mod pdp {
 }
 
 pub mod pwm {
+
+    use super::*;
+
     pub fn initialize_pwm_port(handle: PortHandle) -> HalResult<DigitalHandle> {
         hal_call![ ptr HAL_InitializePWMPort(handle.get_handle()) ].map(|n| DigitalHandle(n))
     }
@@ -1236,6 +1231,9 @@ pub mod pwm {
 }
 
 pub mod ports {
+
+    use super::*;
+
     pub fn get_num_accumulators() -> i32 {
         unsafe { HAL_GetNumAccumulators() }
     }
@@ -1310,6 +1308,9 @@ pub mod ports {
 }
 
 pub mod power {
+
+    use super::*;
+
     pub fn get_vin_voltage() -> HalResult<f64> {
         hal_call![ ptr HAL_GetVinVoltage() ]
     }
@@ -1368,6 +1369,9 @@ pub mod power {
 }
 
 pub mod relay {
+
+    use super::*;
+
     pub fn hal_initialize_relay_port(port_handle: PortHandle, fwd: bool) -> HalResult<RelayHandle> {
         hal_call![ ptr HAL_InitializeRelayPort(port_handle.get_handle(), fwd as HAL_Bool) ].map(From::from)
     }
@@ -1391,7 +1395,7 @@ pub mod relay {
 
 pub mod spi {
 
-    use ::raw::*;
+    use super::*;
 
     // TODO: handle thingy?
     pub fn initialize_spi(port: i32) -> HalResult<()> {
@@ -1491,6 +1495,9 @@ pub mod spi {
 
 // One whole big TODO
 pub mod serial {
+
+    use super::*;
+
     pub fn initialize_serial_port(port: SerialPort) {
         unsafe { HAL_InitializeSerialPort(port.into()) }
     }
@@ -1572,6 +1579,9 @@ pub mod serial {
 }
 
 pub mod solenoid {
+
+    use super::*;
+
     pub fn initialize_solenoid_port(handle: PortHandle) -> HalResult<SolenoidHandle> {
         hal_call![ ptr HAL_InitializeSolenoidPort(handle.get_handle()) ].map(|n| SolenoidHandle(n))
     }
