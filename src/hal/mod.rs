@@ -82,6 +82,23 @@ pub mod solenoid;
 /// Bindings to SPI (Serial Port Interface)
 pub mod spi;
 
+pub type RawRuntimeType = HAL_RuntimeType;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum RuntimeType {
+    Native, Mock
+}
+
+impl From<RawRuntimeType> for RuntimeType {
+    fn from(raw: RawRuntimeType) -> Self {
+        match raw {
+            RawRuntimeType::HAL_Athena => RuntimeType::Native,
+            RawRuntimeType::HAL_Mock => RuntimeType::Mock,
+        }
+    }
+}
+
+
 // I think this was in HAL/Constants.h?
 pub fn get_system_clock_ticks_per_microsecond() -> i32 {
     unsafe { HAL_GetSystemClockTicksPerMicrosecond() }

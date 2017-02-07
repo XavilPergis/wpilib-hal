@@ -1,5 +1,23 @@
 use ::raw::*;
 
+pub type RawCounterMode = HAL_Counter_Mode;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CounterMode {
+    TwoPulse, Semiperiod, PulseLength, ExternalDirection
+}
+
+impl From<RawCounterMode> for CounterMode {
+    fn from(raw: RawCounterMode) -> Self {
+        match raw {
+            RawCounterMode::HAL_Counter_kExternalDirection => CounterMode::ExternalDirection,
+            RawCounterMode::HAL_Counter_kPulseLength => CounterMode::PulseLength,
+            RawCounterMode::HAL_Counter_kSemiperiod => CounterMode::Semiperiod,
+            RawCounterMode::HAL_Counter_kTwoPulse => CounterMode::TwoPulse
+        }
+    }
+}
+
 // FIXME
 pub fn initialize_counter(mode: CounterMode, index: *mut i32) -> HalResult<HAL_CounterHandle> {
     hal_call![ ptr HAL_InitializeCounter(mode.into()) ]

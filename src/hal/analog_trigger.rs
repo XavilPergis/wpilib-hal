@@ -1,5 +1,23 @@
 use ::raw::*;
 
+pub type RawAnalogTriggerType = HAL_AnalogTriggerType;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum AnalogTriggerType {
+    InWindow, State, RisingPulse, FallingPulse
+}
+
+impl From<RawAnalogTriggerType> for AnalogTriggerType {
+    fn from(raw: RawAnalogTriggerType) -> Self {
+        match raw {
+            RawAnalogTriggerType::HAL_Trigger_kInWindow => AnalogTriggerType::InWindow,
+            RawAnalogTriggerType::HAL_Trigger_kState => AnalogTriggerType::State,
+            RawAnalogTriggerType::HAL_Trigger_kRisingPulse => AnalogTriggerType::RisingPulse,
+            RawAnalogTriggerType::HAL_Trigger_kFallingPulse => AnalogTriggerType::FallingPulse
+        }
+    }
+}
+
 //pub fn initialize_analog_trigger(handle: AnalogInputHandle)
 // FIXME
 //    pub fn HAL_InitializeAnalogTrigger(portHandle: HAL_AnalogInputHandle,
