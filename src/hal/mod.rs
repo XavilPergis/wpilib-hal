@@ -4,12 +4,6 @@ use ::raw::*;
 #[macro_use]
 pub mod error;
 
-// TODO: Separate out
-pub mod enums;
-
-// TODO: Seperate out
-pub mod structs;
-
 /// Bindings for the on-board accelerometer
 pub mod accelerometer;
 
