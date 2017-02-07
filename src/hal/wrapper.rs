@@ -423,7 +423,7 @@ pub mod can {
     // pub fn FRC_NetworkCommunication_CANSessionMux_closeStreamSession(sessionHandle: u32);
     // pub fn FRC_NetworkCommunication_CANSessionMux_readStreamSession(sessionHandle: u32, messages: *mut tCANStreamMessage, messagesToRead: u32, messagesRead: *mut u32) -> HalResult<()>;
     // pub fn FRC_NetworkCommunication_CANSessionMux_getCANStatus(percentBusUtilization: *mut f32, busOffCount: *mut u32, txFullCount: *mut u32, receiveErrorCount: *mut u32, transmitErrorCount: *mut u32) -> HalResult<()>;
-
+ 
     pub fn can_tx_pack<C>(arb_id: u32, offset: u8, value: C) where C: CANTransmittable {
         value.tx_pack(arb_id, offset, value)
     }

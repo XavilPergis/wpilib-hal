@@ -2,13 +2,14 @@ use std::io::{ self, Read, Write, ErrorKind };
 use std::io::Error as IoError;
 use hal::error::*;
 use ::raw::HAL_SerialPort;
-use ::hal::wrapper;
+use ::hal::wrapper::{ i2c, spi };
 
 pub type RawSerialPort = HAL_SerialPort;
 
 lazy_static! {
     static ref INITIALIZED_SERIAL_PORTS: Vec<SerialPort> = Vec::new();
     static ref INITIALIZED_SPI_PORTS: Vec<i32> = Vec::new();
+    static ref INITIALIZED_I2C_PORTS: Vec<i32> = Vec::new();
 }
 
 pub enum SerialError {
@@ -218,3 +219,87 @@ impl HalSerialIO for HalSpi {
         wrapper::spi::close_spi(self.port.get_port())
     }
 }
+
+/// Which port the SPI is plugged into
+#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub enum I2cPort {
+    OnBoard,
+    MXP
+}
+
+impl I2cPort {
+    pub fn get_port(&self) -> i32 {
+        match self {
+            I2cPort::OnBoard => 0,
+            I2cPort::MXP => 1
+        }
+    }
+}
+
+/// Options for an I2C
+#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub struct I2cOptions {
+    /// The number of bytes to read per call
+    pub read_size: i32
+}
+
+impl Default for I2cOptions {
+    fn default() -> Self {
+        I2cOptions {
+            read_size: 1
+        }
+    }
+}
+
+/// Represents an I2C on the robot; there should only ever be the 4 on the RoboRIO
+pub struct I2C {
+    /// The port of this I2C
+    port: i32,
+    /// Options for this I2C
+    opts: I2cOptions
+}
+
+impl I2C {
+    /// Construct and initialize a serial port with the default settings
+    pub fn new(port: I2cPort) -> Option<I2C> {
+        if INITIALIZED_I2C_PORTS.contains(port.get_port()) {
+            None
+        } else {
+            i2c::initialize_i2c(port.get_port());
+
+            Some(I2C {
+                port: port.get_port(),
+                opts: Default::default()
+            })
+        }
+    }
+
+    /// Creates a new I2C instance from a port number
+    ///
+    /// # Safety
+    /// Trying to read or write to the same I2C port at the same time from two different threads
+    /// would cause a data race. The actual initialization is not unsafe.
+    pub unsafe fn new_raw(port: i32, opts: I2cOptions) -> I2C {
+        i2c::initialize_i2c(port);
+
+        I2C {
+            port: port,
+            opts: opts
+        }
+    }
+}
+
+impl HalSerialIO for HalI2C {
+    fn hal_read(&mut self, buf: &mut [u8]) -> HalResult<i32> {
+        i2c::read_i2c(self.port.get_port(), buf, self.opts.read_size)
+    }
+
+    fn hal_write(&mut self, buf: &[u8]) -> HalResult<i32> {
+        i2c::write_i2c(self.port.get_port(), buf, buf.len())
+    }
+
+    fn hal_close(&mut self) {
+        i2c::close_i2c(self.port.get_port())
+    }
+}
+
