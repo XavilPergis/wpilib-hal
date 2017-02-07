@@ -10,6 +10,9 @@
 
 extern crate time;
 
+#[macro_use]
+extern crate lazy_static;
+
 /// Contains bindings to the HAL
 #[macro_use]
 pub mod hal;

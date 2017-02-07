@@ -1,5 +1,6 @@
 use raw;
 use std::ffi::NulError;
+use std::error::Error;
 
 /// Result type encompassing most errors that are returned in this library
 pub type HalResult<T> = Result<T, HalError>;
@@ -7,18 +8,14 @@ pub type HalResult<T> = Result<T, HalError>;
 // Because it turns out WPILIB is really messy and have two ways of indicating failure...
 // Or not at all...
 
-/// Wraps the variant of HAL functions that take a status pointer and set its status
-macro_rules! hal_status_pointer_call {
-    ($function:ident($($arg:expr),*)) => {{
+/// Call a HAL function and wrap the output in a `HalResult`
+macro_rules! hal_call {
+    (ptr $function:ident($($arg:expr),*)) => {{
         let mut status = 0;
         let result = unsafe { $function($($arg,)* &mut status as *mut i32) };
         if status == 0 { Ok(result) } else { Err(HalError::from(status)) }
     }};
-}
-
-/// Wraps the variant of HAL functions that return a status code
-macro_rules! hal_status_return_call {
-    ($function:ident($($arg:expr),*)) => {{
+    (ret $function:ident($($arg:expr),*)) => {{
         let status = unsafe { $function($($arg,)*) };
         if status == 0 { Ok(()) } else { Err(HalError::from(status)) }
     }};
@@ -63,6 +60,15 @@ pub enum HalError {
     Hal(FfiError),
     /// A string that was provided contained a null byte and could not be converted into a CString
     NullError(NulError)
+}
+
+impl Error for HalError {
+    fn description(&self) -> &str {
+        match *self {
+            HalError::Hal(err) => format!("FFI Error: {}", err).as_str(),
+            HalError::NulError(err) => err.description()
+        }
+    }
 }
 
 impl From<i32> for HalError {
