@@ -1,4 +1,6 @@
 use ::raw::*;
+use hal::handle::*;
+use ::error::*;
 
 // TODO: rait or struct?
 pub trait AnalogInput {
@@ -22,7 +24,7 @@ pub trait AnalogInput {
 }
 
 pub struct IrSensor {
-    handle: AnalogInputHandle
+    handle: AnalogInputHandle,
 }
 
 impl AnalogInput for IrSensor {
@@ -32,7 +34,8 @@ impl AnalogInput for IrSensor {
 }
 
 pub fn initialize_analog_input_port(handle: PortHandle) -> HalResult<AnalogInputHandle> {
-    hal_call![ ptr HAL_InitializeAnalogInputPort(handle.get_handle()) ].map(|n| AnalogInputHandle(n))
+    hal_call![ ptr HAL_InitializeAnalogInputPort(handle.get_handle()) ]
+        .map(|n| AnalogInputHandle(n))
 }
 
 pub fn free_analog_input_port(handle: AnalogInputHandle) {
@@ -100,4 +103,3 @@ pub fn get_analog_lsb_weight(handle: AnalogInputHandle) -> HalResult<i32> {
 pub fn get_analog_offset(handle: AnalogInputHandle) -> HalResult<i32> {
     hal_call![ ptr HAL_GetAnalogOffset(handle.get_handle()) ]
 }
-

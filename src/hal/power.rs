@@ -1,4 +1,5 @@
 use ::raw::*;
+use ::error::*;
 
 pub fn get_vin_voltage() -> HalResult<f64> {
     hal_call![ ptr HAL_GetVinVoltage() ]

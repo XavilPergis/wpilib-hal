@@ -1,8 +1,10 @@
 use ::raw::*;
+use ::handle::*;
+use ::error::*;
+use std::os::raw::c_char;
+use std::ffi::{CStr, CString};
 
-/// Contains aggregate error types and macros for calling FFI functions
-#[macro_use]
-pub mod error;
+pub mod handle;
 
 /// Bindings for the on-board accelerometer
 pub mod accelerometer;
@@ -80,14 +82,15 @@ pub type RawRuntimeType = HAL_RuntimeType;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum RuntimeType {
-    Native, Mock
+    Native,
+    Mock,
 }
 
 impl From<RawRuntimeType> for RuntimeType {
     fn from(raw: RawRuntimeType) -> Self {
         match raw {
-            RawRuntimeType::HAL_Athena => RuntimeType::Native,
-            RawRuntimeType::HAL_Mock => RuntimeType::Mock,
+            HAL_RuntimeType::HAL_Athena => RuntimeType::Native,
+            HAL_RuntimeType::HAL_Mock => RuntimeType::Mock,
         }
     }
 }
@@ -100,7 +103,7 @@ pub fn get_system_clock_ticks_per_microsecond() -> i32 {
 
 pub fn get_error_message(code: i32) -> String {
     let char_ptr = unsafe { HAL_GetErrorMessage(code) };
-    CStr::from_ptr(char_ptr).to_string_lossy().into_owned()
+    unsafe { CStr::from_ptr(char_ptr).to_string_lossy().into_owned() }
 }
 
 pub fn get_fpga_version() -> HalResult<i32> {
@@ -127,8 +130,8 @@ pub fn get_browned_out() -> HalResult<bool> {
     hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0)
 }
 
-pub fn base_initialize() {
-    unsafe { HAL_BaseInitialize() }
+pub fn base_initialize() -> HalResult<()> {
+    hal_call![ ptr HAL_BaseInitialize() ]
 }
 
 pub fn get_port(channel: i32) -> PortHandle {
@@ -149,5 +152,10 @@ pub fn hal_initialize(mode: i32) -> i32 {
 }
 
 pub fn report(resource: i32, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
-    unsafe { HAL_Report(resource, instance_number, context, feature.as_ptr()) }
+    unsafe {
+        HAL_Report(resource,
+                   instance_number,
+                   context,
+                   feature.as_ptr() as *const c_char)
+    }
 }

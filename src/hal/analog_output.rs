@@ -1,4 +1,6 @@
 use ::raw::*;
+use hal::handle::*;
+use ::error::*;
 
 pub trait AnalogOutput {
     fn get(&self) -> HalResult<f64>;
@@ -6,7 +8,8 @@ pub trait AnalogOutput {
 }
 
 pub fn initialize_analog_output_port(handle: PortHandle) -> HalResult<AnalogOutputHandle> {
-    hal_call![ ptr HAL_InitializeAnalogOutputPort(handle.get_handle()) ].map(|n| AnalogOutputHandle(n))
+    hal_call![ ptr HAL_InitializeAnalogOutputPort(handle.get_handle()) ]
+        .map(|n| AnalogOutputHandle(n))
 }
 
 pub fn free_analog_output_port(handle: AnalogOutputHandle) {

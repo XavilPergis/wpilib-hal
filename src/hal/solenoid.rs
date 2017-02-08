@@ -1,5 +1,8 @@
 use ::raw::*;
 
+use handle::{SolenoidHandle, PortHandle, Handle};
+use ::error::*;
+
 pub fn initialize_solenoid_port(handle: PortHandle) -> HalResult<SolenoidHandle> {
     hal_call![ ptr HAL_InitializeSolenoidPort(handle.get_handle()) ].map(|n| SolenoidHandle(n))
 }
@@ -21,15 +24,15 @@ pub fn get_solenoid(handle: SolenoidHandle) -> HalResult<bool> {
 }
 
 pub fn get_all_solenoids(module: i32) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAllSolenoids() ]
+    hal_call![ ptr HAL_GetAllSolenoids(module) ]
 }
 
-pub fn set_solenoid(solenoid_port_handle: SolenoidHandle, value: bool) {
-    unsafe { HAL_SetSolenoid(solenoid_port_handle.get_handle(), value as HAL_Bool) }
+pub fn set_solenoid(solenoid_port_handle: SolenoidHandle, value: bool) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSolenoid(solenoid_port_handle.get_handle(), value as HAL_Bool) ]
 }
 
-pub fn set_all_solenoids(module: i32, state: i32) {
-    unsafe { HAL_SetAllSolenoids(module, state) }
+pub fn set_all_solenoids(module: i32, state: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetAllSolenoids(module, state) ]
 }
 
 pub fn get_pcm_solenoid_black_list(module: i32) -> HalResult<i32> {
@@ -44,6 +47,6 @@ pub fn get_pcm_solenoid_voltage_fault(module: i32) -> HalResult<bool> {
     hal_call![ ptr HAL_GetPCMSolenoidVoltageFault(module) ].map(|n| n != 0)
 }
 
-pub fn clear_all_pcm_sticky_faults(module: i32) {
-    unsafe { HAL_ClearAllPCMStickyFaults(module) }
+pub fn clear_all_pcm_sticky_faults(module: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_ClearAllPCMStickyFaults(module) ]
 }

@@ -1,4 +1,5 @@
 use ::raw::*;
+use ::error::*;
 
 pub fn initialize_i2c(port: i32) -> HalResult<()> {
     hal_call![ ptr HAL_InitializeI2C(port) ]
@@ -10,7 +11,12 @@ pub fn initialize_i2c(port: i32) -> HalResult<()> {
 //}
 
 pub fn write_i2c(port: i32, device_address: i32, data_to_send: &[u8], send_size: i32) -> i32 {
-    unsafe { HAL_WriteI2C(port, device_address, data_to_send.as_ptr() as *mut u8, send_size) }
+    unsafe {
+        HAL_WriteI2C(port,
+                     device_address,
+                     data_to_send.as_ptr() as *mut u8,
+                     send_size)
+    }
 }
 
 pub fn read_i2c(port: i32, device_address: i32, buffer: &mut [u8], count: i32) -> i32 {

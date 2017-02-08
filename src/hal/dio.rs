@@ -1,7 +1,10 @@
 use ::raw::*;
+use hal::handle::*;
+use ::error::*;
 
 pub fn initialize_dio_port(handle: PortHandle, input: bool) -> HalResult<DigitalHandle> {
-    hal_call![ ptr HAL_InitializeDIOPort(handle.get_handle(), input as HAL_Bool) ].map(From::from)
+    hal_call![ ptr HAL_InitializeDIOPort(handle.get_handle(), input as HAL_Bool) ]
+        .map(|n| DigitalHandle(n))
 }
 
 pub fn check_dio_channel(channel: i32) -> bool {
@@ -24,11 +27,15 @@ pub fn set_digital_pwm_rate(rate: f64) -> HalResult<()> {
     hal_call![ ptr HAL_SetDigitalPWMRate(rate) ]
 }
 
-pub fn set_digital_pwm_duty_cycle(pwm_generator: DigitalPwmHandle, duty_cycle: f64) -> HalResult<()> {
+pub fn set_digital_pwm_duty_cycle(pwm_generator: DigitalPwmHandle,
+                                  duty_cycle: f64)
+                                  -> HalResult<()> {
     hal_call![ ptr HAL_SetDigitalPWMDutyCycle(pwm_generator.get_handle(), duty_cycle) ]
 }
 
-pub fn set_digital_pwm_output_channel(pwm_generator: DigitalPwmHandle, channel: i32) -> HalResult<()> {
+pub fn set_digital_pwm_output_channel(pwm_generator: DigitalPwmHandle,
+                                      channel: i32)
+                                      -> HalResult<()> {
     hal_call![ ptr HAL_SetDigitalPWMOutputChannel(pwm_generator.get_handle(), channel) ]
 }
 

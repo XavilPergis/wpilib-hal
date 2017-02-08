@@ -1,7 +1,7 @@
 //! This module ports WPILIB's `HAL/DriverStation.h` to Rust
 
 use raw::*;
-use hal::error::*;
+use ::error::*;
 
 use std::ffi::CString;
 use std::mem;
@@ -30,7 +30,7 @@ pub struct ControlWord {
     /// Whether the Field Managment System is attached
     pub fms_attached: bool,
     /// Whether the Driver STation is attached
-    pub ds_attached: bool
+    pub ds_attached: bool,
 }
 
 impl ControlWord {
@@ -43,7 +43,7 @@ impl ControlWord {
             test: false,
             stopped: false,
             fms_attached: false,
-            ds_attached: false
+            ds_attached: false,
         }
     }
 }
@@ -57,7 +57,7 @@ impl From<HAL_ControlWord> for ControlWord {
             test: raw.test() != 0,
             stopped: raw.eStop() != 0,
             fms_attached: raw.fmsAttached() != 0,
-            ds_attached: raw.dsAttached() != 0
+            ds_attached: raw.dsAttached() != 0,
         }
     }
 }
@@ -72,14 +72,14 @@ impl From<HAL_ControlWord> for ControlWord {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct JoystickAxes {
     axes: [f32; MAX_JOYSTICK_AXES],
-    count: i16
+    count: i16,
 }
 
 impl From<HAL_JoystickAxes> for JoystickAxes {
     fn from(raw_axes: HAL_JoystickAxes) -> JoystickAxes {
         JoystickAxes {
             axes: raw_axes.axes,
-            count: raw_axes.count
+            count: raw_axes.count,
         }
     }
 }
@@ -89,14 +89,14 @@ impl From<HAL_JoystickAxes> for JoystickAxes {
 pub struct JoystickPovs {
     /// Turns out, each element is actually the angle of the POV in degrees.
     povs: [i16; MAX_JOYSTICK_POVS],
-    count: i16
+    count: i16,
 }
 
 impl From<HAL_JoystickPOVs> for JoystickPovs {
     fn from(raw_povs: HAL_JoystickPOVs) -> JoystickPovs {
         JoystickPovs {
             povs: raw_povs.povs,
-            count: raw_povs.count
+            count: raw_povs.count,
         }
     }
 }
@@ -108,14 +108,14 @@ pub struct JoystickButtons {
     // An i32 is 32 bit; it can hold 32 different buttons
     buttons_down: [bool; 32],
     // TODO: Leaving this in until I know what it does
-    count: u16
+    count: u16,
 }
 
 impl From<HAL_JoystickButtons> for JoystickButtons {
     fn from(raw_buttons: HAL_JoystickButtons) -> JoystickButtons {
         let mut buttons = JoystickButtons {
             buttons_down: [false; 32],
-            count: 0
+            count: 0,
         };
 
         for i in 0..32 {
@@ -137,20 +137,25 @@ pub struct JoystickDescriptor {
     button_count: u8,
     axis_count: u8,
     axis_types: [u8; MAX_JOYSTICK_AXES],
-    pov_count: u8
+    pov_count: u8,
 }
 
 impl From<HAL_JoystickDescriptor> for JoystickDescriptor {
     fn from(raw_descriptor: HAL_JoystickDescriptor) -> JoystickDescriptor {
         JoystickDescriptor {
             // FIXME: Does this even work?
-            name: String::from_utf8_lossy(raw_descriptor.name.iter().map(|x| *x as u8).collect::<Vec<u8>>().as_slice()).escape_default(),
+            name: String::from_utf8_lossy(raw_descriptor.name
+                    .iter()
+                    .map(|x| *x as u8)
+                    .collect::<Vec<u8>>()
+                    .as_slice())
+                .escape_default(),
             is_xbox: raw_descriptor.isXbox != 0,
             stick_type: JoystickType::from(raw_descriptor.type_ as i32),
             button_count: raw_descriptor.buttonCount,
             axis_types: raw_descriptor.axisTypes,
             axis_count: raw_descriptor.axisCount,
-            pov_count: raw_descriptor.povCount
+            pov_count: raw_descriptor.povCount,
         }
     }
 }
@@ -164,21 +169,21 @@ pub enum AllianceStation {
     /// Blue alliance station
     Blue(u8),
     /// Invalid station
-    Invalid
+    Invalid,
 }
 
 /// TODO: Figure out what a joystick type actually is
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum JoystickType {
     /// An unknown type of joystick. TODO: What is this?
-    Unknown(i32)
+    Unknown(i32),
 }
 
 impl From<i32> for JoystickType {
     fn from(joystick_type: i32) -> JoystickType {
         // TODO: Figure out what the hell the joystick type means
         match joystick_type {
-            k => JoystickType::Unknown(k)
+            k => JoystickType::Unknown(k),
         }
     }
 }
@@ -195,7 +200,7 @@ pub enum UserProgramMode {
     /// The user proram is in tele-operated mode
     TeleOperated,
     /// The user program is in test mode
-    Test
+    Test,
 }
 
 // TODO: What is this?
@@ -254,14 +259,19 @@ pub fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
 // TODO: Figure out what a joystick type is
 pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<JoystickType> {
     if axis >= 0 {
-        Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.axis_types[axis as usize] as i32))
+        Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.axis_types[axis as usize] as
+                              i32))
     } else {
         Err(HalError::Hal(FfiError::ParameterOutOfRange))
     }
 }
 
 // TODO: What is this?
-pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) -> HalResult<()> {
+pub fn set_joystick_outputs(joystick_num: i32,
+                            outputs: i64,
+                            left_rumble: i32,
+                            right_rumble: i32)
+                            -> HalResult<()> {
     hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble))
 }
 
@@ -272,7 +282,7 @@ pub fn observe_user_program(mode: UserProgramMode) {
         UserProgramMode::Disabled => self::observe_user_program_disabled(),
         UserProgramMode::Autonomous => self::observe_user_program_autonomous(),
         UserProgramMode::TeleOperated => self::observe_user_program_teleop(),
-        UserProgramMode::Test => self::observe_user_program_test()
+        UserProgramMode::Test => self::observe_user_program_test(),
     }
 }
 
@@ -310,7 +320,14 @@ pub fn wait_for_ds_data() {
 }
 
 /// Reports an error to the driver station
-pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &str, location: &str, call_stack: &str, print_message: bool) -> Result<(), HalError> {
+pub fn send_error(is_error: bool,
+                  error_code: i32,
+                  is_lv_code: bool,
+                  details: &str,
+                  location: &str,
+                  call_stack: &str,
+                  print_message: bool)
+                  -> Result<(), HalError> {
     // CString::new() will return an `Err(NulError)` if there is a `\0` in the string passed in
     // Since this is a struct type error, it means that only `Err(NulError)` should ever be passed
     // in so we can safely transmute `NulError` into `HalError::NullError`
@@ -328,7 +345,7 @@ pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &s
 pub fn get_alliance_station() -> HalResult<AllianceStation> {
     let station_id = hal_call!(ptr HAL_GetAllianceStation())?;
 
-    use ::raw::HAL_AllianceStationID;
+    use raw::HAL_AllianceStationID;
 
     Ok(match station_id {
         HAL_AllianceStationID::HAL_AllianceStationID_kRed1 => AllianceStation::Red(1),
@@ -336,7 +353,7 @@ pub fn get_alliance_station() -> HalResult<AllianceStation> {
         HAL_AllianceStationID::HAL_AllianceStationID_kRed3 => AllianceStation::Red(3),
         HAL_AllianceStationID::HAL_AllianceStationID_kBlue1 => AllianceStation::Blue(1),
         HAL_AllianceStationID::HAL_AllianceStationID_kBlue2 => AllianceStation::Blue(2),
-        HAL_AllianceStationID::HAL_AllianceStationID_kBlue3 => AllianceStation::Blue(3)
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue3 => AllianceStation::Blue(3),
     })
 }
 

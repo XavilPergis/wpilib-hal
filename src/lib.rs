@@ -5,16 +5,18 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 #![allow(dead_code)]
-
-extern crate time;
 
 #[macro_use]
 extern crate lazy_static;
+extern crate time;
+
+/// Contains aggregate error types and macros for calling FFI functions
+#[macro_use]
+pub mod error;
 
 /// Contains bindings to the HAL
-#[macro_use]
 pub mod hal;
 mod raw;
 

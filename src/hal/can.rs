@@ -7,13 +7,9 @@ pub struct CANStreamMessage {
     pub data_size: u8,
 }
 
-pub struct CANDevice {
+pub struct CANDevice {}
 
-}
-
-impl CANDevice {
-
-}
+impl CANDevice {}
 
 pub trait CANTransmittable {
     fn tx_pack(&self, arb_id: u32, offset: u8);
@@ -36,8 +32,8 @@ impl CANTransmittable for u8 {
 }
 
 impl CANTransmittable for u16 {
-    fn tx_pack(&self, arb_id: u32, offset: u16) {
-        can_tx_pack_int16(arb_id, offset, value)
+    fn tx_pack(&self, arb_id: u32, offset: u8) {
+        can_tx_pack_int16(arb_id, offset, *self)
     }
 
     fn tx_unpack(arb_id: u32, offset: u8) -> u16 {
@@ -50,8 +46,8 @@ impl CANTransmittable for u16 {
 }
 
 impl CANTransmittable for u32 {
-    fn tx_pack(&self, arb_id: u32, offset: u32) {
-        can_tx_pack_int32(arb_id, offset, value)
+    fn tx_pack(&self, arb_id: u32, offset: u8) {
+        can_tx_pack_int32(arb_id, offset, *self)
     }
 
     fn tx_unpack(arb_id: u32, offset: u8) -> u32 {
@@ -65,16 +61,16 @@ impl CANTransmittable for u32 {
 
 // FIXME
 impl CANTransmittable for f64 {
-    fn tx_pack(&self, arb_id: u32, offset: f64) {
-        can_tx_pack_int32(arb_id, offset, value)
+    fn tx_pack(&self, arb_id: u32, offset: u8) {
+        can_tx_pack_fxp16(arb_id, offset, *self)
     }
 
     fn tx_unpack(arb_id: u32, offset: u8) -> f64 {
-        can_tx_unpack_int32(arb_id, offset)
+        can_tx_unpack_fxp16(arb_id, offset)
     }
 
     fn rx_unpack(arb_id: u32, offset: u8) -> f64 {
-        can_rx_unpack_int32(arb_id, offset)
+        can_rx_unpack_fxp16(arb_id, offset)
     }
 }
 
@@ -85,20 +81,24 @@ impl CANTransmittable for f64 {
 // pub fn FRC_NetworkCommunication_CANSessionMux_readStreamSession(sessionHandle: u32, messages: *mut tCANStreamMessage, messagesToRead: u32, messagesRead: *mut u32) -> HalResult<()>;
 // pub fn FRC_NetworkCommunication_CANSessionMux_getCANStatus(percentBusUtilization: *mut f32, busOffCount: *mut u32, txFullCount: *mut u32, receiveErrorCount: *mut u32, transmitErrorCount: *mut u32) -> HalResult<()>;
 
-pub fn can_tx_pack<C>(arb_id: u32, offset: u8, value: C) where C: CANTransmittable {
-    value.tx_pack(arb_id, offset, value)
+pub fn can_tx_pack<C>(arb_id: u32, offset: u8, value: C)
+    where C: CANTransmittable
+{
+    value.tx_pack(arb_id, offset)
 }
 
-pub fn can_tx_unpack<C>(arb_id: u32, offset: u8) -> C where C: CANTransmittable {
+pub fn can_tx_unpack<C>(arb_id: u32, offset: u8) -> C
+    where C: CANTransmittable
+{
     C::tx_unpack(arb_id, offset)
 }
 
 pub fn can_tx_send(arb_id: u32, length: u8, period: i32) {
-    unsafe { canTxSend(arb_id) }
+    unsafe { canTxSend(arb_id, length, period) }
 }
 
 pub fn can_tx_pack_int8(arb_id: u32, offset: u8, value: u8) {
-    unsafe  { canTxPackInt8(arb_id, offset, value) }
+    unsafe { canTxPackInt8(arb_id, offset, value) }
 }
 
 pub fn can_tx_pack_int16(arb_id: u32, offset: u8, value: u16) {
@@ -160,4 +160,3 @@ pub fn can_rx_unpack_fxp16(arb_id: u32, offset: u8) -> f64 {
 pub fn can_rx_unpack_fxp32(arb_id: u32, offset: u8) -> f64 {
     unsafe { canRxUnpackFXP32(arb_id, offset) }
 }
-

@@ -2,8 +2,12 @@
 name = "wpilib-sys"
 version = "0.1.0"
 authors = ["XavilPergis <max.duzen@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 time = "*"
 clippy = { version = "*", optional = true }
 lazy_static = "*"
+
+[build-dependencies]
+bindgen = "*"

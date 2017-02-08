@@ -1,25 +1,26 @@
 use ::raw::*;
+use hal::handle::*;
+use ::error::*;
+use hal::analog_input::AnalogInput;
 
 pub struct AnalogGyro {
-    port: GyroHandle
+    port: GyroHandle,
 }
 
 impl AnalogGyro {
     pub fn new(port: AnalogInputHandle) -> HalResult<AnalogGyro> {
-        self::initialize_analog_gyro(port).map(|gh| AnalogGyro {
-            port: port
-        })
+        self::initialize_analog_gyro(port).map(|gh| AnalogGyro { port: gh })
     }
 }
 
 impl AnalogInput for AnalogGyro {
     fn get_handle(&self) -> AnalogInputHandle {
-        self.port.transmute_handle::<AnalogInputHandle>()
+        *self.port.transmute_handle::<AnalogInputHandle>()
     }
 }
 
 pub fn initialize_analog_gyro(port: AnalogInputHandle) -> HalResult<GyroHandle> {
-    hal_call![ ptr HAL_InitializeAnalogGyro(port.get_handle()) ].map(From::from)
+    hal_call![ ptr HAL_InitializeAnalogGyro(port.get_handle()) ].map(|n| GyroHandle(n))
 }
 
 pub fn setup_analog_gyro(port: GyroHandle) -> HalResult<()> {
@@ -30,7 +31,11 @@ pub fn free_analog_gyro(port: GyroHandle) {
     unsafe { HAL_FreeAnalogGyro(port.get_handle()) }
 }
 
-pub fn set_analog_gyro_parameters(handle: GyroHandle, volts_per_degree_per_second: f64, offset: f64, center: i32) -> HalResult<()> {
+pub fn set_analog_gyro_parameters(handle: GyroHandle,
+                                  volts_per_degree_per_second: f64,
+                                  offset: f64,
+                                  center: i32)
+                                  -> HalResult<()> {
     hal_call![ ptr HAL_SetAnalogGyroParameters(handle.get_handle(), volts_per_degree_per_second, offset, center) ]
 }
 

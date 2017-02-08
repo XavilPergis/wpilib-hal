@@ -1,7 +1,10 @@
 use ::raw::*;
+use hal::handle::*;
+use ::error::*;
 
 pub fn hal_initialize_relay_port(port_handle: PortHandle, fwd: bool) -> HalResult<RelayHandle> {
-    hal_call![ ptr HAL_InitializeRelayPort(port_handle.get_handle(), fwd as HAL_Bool) ].map(From::from)
+    hal_call![ ptr HAL_InitializeRelayPort(port_handle.get_handle(), fwd as HAL_Bool) ]
+        .map(|n| RelayHandle(n))
 }
 
 pub fn free_relay_port(handle: RelayHandle) {
@@ -9,7 +12,7 @@ pub fn free_relay_port(handle: RelayHandle) {
 }
 
 pub fn check_relay_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckRelayChannel() != 0 }
+    unsafe { HAL_CheckRelayChannel(channel) != 0 }
 }
 
 pub fn set_relay(handle: RelayHandle, on: bool) -> HalResult<()> {

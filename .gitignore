@@ -1,4 +1,6 @@
 target
 Cargo.lock
-.idea/
-wpilib-sys.iml
+*.DS_store
+
+# Ignore the bindings; those should be generated at build-time
+src/raw.rs
