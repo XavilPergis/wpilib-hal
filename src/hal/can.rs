@@ -74,12 +74,36 @@ impl CANTransmittable for f64 {
     }
 }
 
-// pub fn FRC_NetworkCommunication_CANSessionMux_sendMessage(messageID: u32, data: *const u8, dataSize: u8, periodMs: i32) -> HalResult<()> {}
-// pub fn FRC_NetworkCommunication_CANSessionMux_receiveMessage(messageID: *mut u32, messageIDMask: u32, data: *mut u8, dataSize: *mut u8, timeStamp: *mut u32) -> HalResult<()> {}
-// pub fn FRC_NetworkCommunication_CANSessionMux_openStreamSession(sessionHandle: *mut u32, messageID: u32, messageIDMask: u32, maxMessages: u32) -> HalResult<()>;
-// pub fn FRC_NetworkCommunication_CANSessionMux_closeStreamSession(sessionHandle: u32);
-// pub fn FRC_NetworkCommunication_CANSessionMux_readStreamSession(sessionHandle: u32, messages: *mut tCANStreamMessage, messagesToRead: u32, messagesRead: *mut u32) -> HalResult<()>;
-// pub fn FRC_NetworkCommunication_CANSessionMux_getCANStatus(percentBusUtilization: *mut f32, busOffCount: *mut u32, txFullCount: *mut u32, receiveErrorCount: *mut u32, transmitErrorCount: *mut u32) -> HalResult<()>;
+// pub fn FRC_NetworkCommunication_CANSessionMux_sendMessage(messageID: u32, data: *const u8,
+//                                                           dataSize: u8, periodMs: i32)
+//                                                           -> HalResult<()> {
+// }
+// pub fn FRC_NetworkCommunication_CANSessionMux_receiveMessage(messageID: *mut u32,
+//                                                              messageIDMask: u32, data: *mut u8,
+//                                                              dataSize: *mut u8,
+//                                                              timeStamp: *mut u32)
+//                                                              -> HalResult<()> {
+// }
+// pub fn FRC_NetworkCommunication_CANSessionMux_openStreamSession(sessionHandle: *mut u32,
+//                                                                 messageID: u32,
+//                                                                 messageIDMask: u32,
+//                                                                 maxMessages: u32)
+//                                                                 -> HalResult<()> {
+// }
+// pub fn FRC_NetworkCommunication_CANSessionMux_closeStreamSession(sessionHandle: u32) {}
+// pub fn FRC_NetworkCommunication_CANSessionMux_readStreamSession(sessionHandle: u32,
+//                                                                 messages: *mut tCANStreamMessage,
+//                                                                 messagesToRead: u32,
+//                                                                 messagesRead: *mut u32)
+//                                                                 -> HalResult<()> {
+// }
+// pub fn FRC_NetworkCommunication_CANSessionMux_getCANStatus(percentBusUtilization: *mut f32,
+//                                                            busOffCount: *mut u32,
+//                                                            txFullCount: *mut u32,
+//                                                            receiveErrorCount: *mut u32,
+//                                                            transmitErrorCount: *mut u32)
+//                                                            -> HalResult<()> {
+// }
 
 pub fn can_tx_pack<C>(arb_id: u32, offset: u8, value: C)
     where C: CANTransmittable

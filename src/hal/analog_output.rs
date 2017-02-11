@@ -1,6 +1,6 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use hal::handle::*;
+use ::raw::*;
 
 pub trait AnalogOutput {
     fn get(&self) -> HalResult<f64>;

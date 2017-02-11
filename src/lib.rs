@@ -1,6 +1,8 @@
 //! This is a highly experimental crate providing bindings to WPILIB's HAL.
-//! This crate is not affiliated with FIRST, FRC, or National Instruments in any way
+//! This crate is not affiliated with FIRST, FRC, or National Instruments in
+//! any way
 #![feature(str_escape)]
+#![feature(custom_attribute)]
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
@@ -18,6 +20,8 @@ pub mod error;
 
 /// Contains bindings to the HAL
 pub mod hal;
+
+#[allow(non_camel_case_types, non_snake_case)]
 mod raw;
 
 pub use hal::*;

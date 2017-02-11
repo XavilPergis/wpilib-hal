@@ -1,21 +1,22 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use hal::handle::*;
+use ::raw::*;
 
-// pub type HAL_NotifierProcessFunction = ::std::option::Option<unsafe extern "C" fn(currentTime: u64, handle: HAL_NotifierHandle)>;
+// pub type HAL_NotifierProcessFunction = ::std::option::Option<unsafe extern
+// "C" fn(currentTime: u64, handle: HAL_NotifierHandle)>;
 
 // extern "C" fn notifier_cb<F>(time: u64, handle: HAL_NotifierHandle)
 //     where F: Fn(u64, HAL_NotifierHandle)
 // {
 //     let opt_closure = closure as *mut Option<F>;
 // }
-//
+
 // pub fn initialize_notifier(process: HAL_NotifierProcessFunction,
 //                            param: *mut ::std::os::raw::c_void)
 //                            -> HalResult<NotifierHandle> {
 //     hal_call![ ptr HAL_InitializeNotifier() ]
 // }
-//
+
 // pub fn initialize_notifier_threaded(process: HAL_NotifierProcessFunction,
 //                                     param: *mut ::std::os::raw::c_void)
 //                                     -> HalResult<NotifierHandle> {

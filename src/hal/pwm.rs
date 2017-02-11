@@ -1,7 +1,7 @@
+use ::error::*;
+use hal::handle::*;
 use ::raw::*;
 use std::mem;
-use hal::handle::*;
-use ::error::*;
 
 pub struct PwmConfig {
     max_pwm: i32,
@@ -23,12 +23,8 @@ pub fn check_pwm_channel(channel: i32) -> bool {
     unsafe { HAL_CheckPWMChannel(channel) != 0 }
 }
 
-pub fn set_pwm_config(handle: DigitalHandle,
-                      max_pwm: f64,
-                      deadband_max_pwm: f64,
-                      center_pwm: f64,
-                      deadband_min_pwm: f64,
-                      min_pwm: f64)
+pub fn set_pwm_config(handle: DigitalHandle, max_pwm: f64, deadband_max_pwm: f64,
+                      center_pwm: f64, deadband_min_pwm: f64, min_pwm: f64)
                       -> HalResult<()> {
     hal_call![ ptr HAL_SetPWMConfig(handle.get_handle(), max_pwm, deadband_max_pwm, center_pwm, deadband_min_pwm, min_pwm) ]
 }
@@ -38,32 +34,32 @@ pub fn set_pwm_config_raw(handle: DigitalHandle, cfg: PwmConfig) -> HalResult<()
 }
 
 pub fn get_pwm_config_raw(handle: DigitalHandle) -> HalResult<PwmConfig> {
-    unsafe {
-        // Create a zeroed struct. Will either be filled, or an Err will be returned and cfg will be dropped
-        let mut cfg = PwmConfig {
+    // Create a zeroed struct. Will either be filled, or an Err will be returned
+    // and cfg will be dropped
+    let mut cfg = unsafe {
+        PwmConfig {
             max_pwm: mem::zeroed(),
             deadband_max_pwm: mem::zeroed(),
             center_pwm: mem::zeroed(),
             deadband_min_pwm: mem::zeroed(),
             min_pwm: mem::zeroed(),
-        };
+        }
+    };
 
-        // &mut T can be coerced to *mut T
-        hal_call![ ptr HAL_GetPWMConfigRaw(
-            handle.get_handle(),
-            &mut cfg.max_pwm,
-            &mut cfg.deadband_max_pwm,
-            &mut cfg.center_pwm,
-            &mut cfg.deadband_min_pwm,
-            &mut cfg.min_pwm
-        ) ];
+    // &mut T can be coerced to *mut T
+    hal_call![ ptr HAL_GetPWMConfigRaw(
+        handle.get_handle(),
+        &mut cfg.max_pwm,
+        &mut cfg.deadband_max_pwm,
+        &mut cfg.center_pwm,
+        &mut cfg.deadband_min_pwm,
+        &mut cfg.min_pwm
+    ) ]?;
 
-        Ok(cfg)
-    }
+    Ok(cfg)
 }
 
-pub fn set_pwm_eliminate_deadband(handle: DigitalHandle,
-                                  eliminate_deadband: bool)
+pub fn set_pwm_eliminate_deadband(handle: DigitalHandle, eliminate_deadband: bool)
                                   -> HalResult<()> {
     hal_call![ ptr HAL_SetPWMEliminateDeadband(handle.get_handle(), eliminate_deadband as HAL_Bool) ]
 }

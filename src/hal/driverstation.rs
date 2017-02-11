@@ -1,21 +1,24 @@
 //! This module ports WPILIB's `HAL/DriverStation.h` to Rust
 
-use raw::*;
 use ::error::*;
+use raw::*;
 
 use std::ffi::CString;
 use std::mem;
 
 use time::Duration;
 
-/// The maximum amount of axes that a controller can have. Realistically, this is 3 or 4.
+/// The maximum amount of axes that a controller can have. Realistically, this
+/// is 3 or 4.
 pub const MAX_JOYSTICK_AXES: usize = 12;
-/// The maximum amount of POVs that a controller can have. POVs are the little D-pad like things
+/// The maximum amount of POVs that a controller can have. POVs are the little
+/// D-pad like things
 /// on the top of the joystick.
 pub const MAX_JOYSTICK_POVS: usize = 12;
 
 // TODO: More insightful comments
-/// What modes the driver station is in. Only one of `enabled`, `autonomous`, `test`, and `stopped`
+/// What modes the driver station is in. Only one of `enabled`, `autonomous`,
+/// `test`, and `stopped`
 /// should be on at a time.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ControlWord {
@@ -118,7 +121,7 @@ impl From<HAL_JoystickButtons> for JoystickButtons {
             count: 0,
         };
 
-        for i in 0..32 {
+        for i in 0 .. 32 {
             // extract a field from the i32 bitmask
             buttons.buttons_down[i] = raw_buttons.buttons & (1 << i) == 1;
             buttons.count += 1;
@@ -160,7 +163,8 @@ impl From<HAL_JoystickDescriptor> for JoystickDescriptor {
     }
 }
 
-/// Where the driver station is on the field. Either `Red` or `Blue` with a position from 1 to 3
+/// Where the driver station is on the field. Either `Red` or `Blue` with a
+/// position from 1 to 3
 /// or an invalid station.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum AllianceStation {
@@ -216,7 +220,8 @@ pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescripto
     Ok(JoystickDescriptor::from(descriptor))
 }
 
-/// Gets the rotations on each "axis" of a joystick. An axis is basically just something that can
+/// Gets the rotations on each "axis" of a joystick. An axis is basically just
+/// something that can
 /// be somewhere in a range of values.
 pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
     let mut raw_axes = unsafe { mem::zeroed() };
@@ -251,7 +256,8 @@ pub fn get_joystick_type(joystick_num: i32) -> HalResult<JoystickType> {
     Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.stick_type))
 }
 
-/// Gets the name of a joystick. This will return a string with a length no greater than 256.
+/// Gets the name of a joystick. This will return a string with a length no
+/// greater than 256.
 pub fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
     Ok(get_joystick_descriptor(joystick_num)?.name)
 }
@@ -267,15 +273,13 @@ pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<Joystic
 }
 
 // TODO: What is this?
-pub fn set_joystick_outputs(joystick_num: i32,
-                            outputs: i64,
-                            left_rumble: i32,
-                            right_rumble: i32)
+pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32)
                             -> HalResult<()> {
     hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble))
 }
 
-// TODO: What are we actually observing? This should be called in the main DS loop
+// TODO: What are we actually observing? This should be called in the main DS
+// loop
 pub fn observe_user_program(mode: UserProgramMode) {
     match mode {
         UserProgramMode::Starting => self::observe_user_program_starting(),
@@ -291,7 +295,8 @@ pub fn initialize_driver_station() {
     unsafe { HAL_InitializeDriverStation() };
 }
 
-/// Gets a control word directly from the driver station. The result should be cached for ~50ms
+/// Gets a control word directly from the driver station. The result should be
+/// cached for ~50ms
 pub fn get_control_word() -> HalResult<ControlWord> {
     let mut control_word: HAL_ControlWord = unsafe { mem::zeroed() };
     hal_call!(ret HAL_GetControlWord(&mut control_word as *mut HAL_ControlWord))?;
@@ -299,7 +304,8 @@ pub fn get_control_word() -> HalResult<ControlWord> {
     Ok(ControlWord::from(control_word))
 }
 
-/// Blocks until the DS returns some data. Good for building concurrent abstractions.
+/// Blocks until the DS returns some data. Good for building concurrent
+/// abstractions.
 ///
 /// ## Example
 /// ```
@@ -320,16 +326,13 @@ pub fn wait_for_ds_data() {
 }
 
 /// Reports an error to the driver station
-pub fn send_error(is_error: bool,
-                  error_code: i32,
-                  is_lv_code: bool,
-                  details: &str,
-                  location: &str,
-                  call_stack: &str,
-                  print_message: bool)
+pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &str,
+                  location: &str, call_stack: &str, print_message: bool)
                   -> Result<(), HalError> {
-    // CString::new() will return an `Err(NulError)` if there is a `\0` in the string passed in
-    // Since this is a struct type error, it means that only `Err(NulError)` should ever be passed
+    // CString::new() will return an `Err(NulError)` if there is a `\0` in the
+    // string passed in
+    // Since this is a struct type error, it means that only `Err(NulError)` should
+    // ever be passed
     // in so we can safely transmute `NulError` into `HalError::NullError`
     let details_raw = CString::new(details).map_err(HalError::from)?;
     let location_raw = CString::new(location).map_err(HalError::from)?;
@@ -357,8 +360,10 @@ pub fn get_alliance_station() -> HalResult<AllianceStation> {
     })
 }
 
-/// Gets the match time so far. This is not the *actual* match time, just an approximation of it.
-/// Since this is not the canonical match time, it cannot be used to dispute times or garuntee
+/// Gets the match time so far. This is not the *actual* match time, just an
+/// approximation of it.
+/// Since this is not the canonical match time, it cannot be used to dispute
+/// times or garuntee
 /// that a task completes before the match runs out.
 pub fn get_match_time_approx() -> HalResult<Duration> {
     let time = hal_call![ ptr HAL_GetMatchTime() ]?;

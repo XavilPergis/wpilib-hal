@@ -1,8 +1,8 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use hal::handle::*;
+use ::raw::*;
 
-// TODO: rait or struct?
+// TODO: trait or struct?
 pub trait AnalogInput {
     fn get_handle(&self) -> AnalogInputHandle;
 
@@ -23,16 +23,6 @@ pub trait AnalogInput {
     }
 }
 
-pub struct IrSensor {
-    handle: AnalogInputHandle,
-}
-
-impl AnalogInput for IrSensor {
-    fn get_handle(&self) -> AnalogInputHandle {
-        self.handle
-    }
-}
-
 pub fn initialize_analog_input_port(handle: PortHandle) -> HalResult<AnalogInputHandle> {
     hal_call![ ptr HAL_InitializeAnalogInputPort(handle.get_handle()) ]
         .map(|n| AnalogInputHandle(n))
@@ -42,12 +32,12 @@ pub fn free_analog_input_port(handle: AnalogInputHandle) {
     unsafe { HAL_FreeAnalogInputPort(handle.get_handle()) }
 }
 
-// What the fuck is this
+// TODO: What does this function do?
 pub fn check_analog_module(module: i32) -> bool {
     unsafe { HAL_CheckAnalogModule(module) != 0 }
 }
 
-// Also what the fuck
+// TODO: What does this function do?
 pub fn check_analog_input_channel(channel: i32) -> bool {
     unsafe { HAL_CheckAnalogInputChannel(channel) != 0 }
 }

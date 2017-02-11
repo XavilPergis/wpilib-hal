@@ -1,7 +1,7 @@
-use ::raw::*;
-
-use handle::{SolenoidHandle, PortHandle, Handle};
 use ::error::*;
+
+use handle::{Handle, PortHandle, SolenoidHandle};
+use ::raw::*;
 
 pub fn initialize_solenoid_port(handle: PortHandle) -> HalResult<SolenoidHandle> {
     hal_call![ ptr HAL_InitializeSolenoidPort(handle.get_handle()) ].map(|n| SolenoidHandle(n))

@@ -1,0 +1,177 @@
+
+# # Dont reformat out of line modules
+# skip_children <boolean> Default: false
+
+max_width = 100
+
+ideal_width = 80
+
+tab_spaces = 4
+
+# Maximum width of the args of a function call before falling back to vertical formatting
+# fn_call_width <unsigned integer> Default: 60
+#
+# Maximum width in the body of a struct lit before falling back to vertical formatting
+# struct_lit_width <unsigned integer> Default: 16
+#
+# Maximum width in the body of a struct variant before falling back to vertical formatting
+# struct_variant_width <unsigned integer> Default: 35
+
+force_explicit_abi = true
+
+newline_style = 'Unix'
+
+fn_brace_style = 'SameLineWhere'
+
+# Brace style for structs and enums
+item_brace_style = 'SameLineWhere'
+
+# Brace style for control flow constructs
+control_brace_style = 'AlwaysSameLine'
+
+# Put empty-body implementations on a single line
+impl_empty_single_line = true
+
+# Put empty-body functions on a single line
+fn_empty_single_line = true
+
+# Put single-expression functions on a single line
+fn_single_line = false
+
+# Location of return type in function declaration
+fn_return_indent = 'WithArgs'
+
+# If function argument parenthesis goes on a newline
+# fn_args_paren_newline <boolean> Default: true
+
+# Argument density in functions
+fn_args_density = 'Compressed'
+
+# Layout of function arguments
+# fn_args_layout [Visual|Block|BlockAlways] Default: Visual
+
+# Indent on function arguments
+# fn_arg_indent [Inherit|Tabbed|Visual] Default: Visual
+
+# Determines if '+' or '=' are wrapped in spaces in the punctuation of types
+# type_punctuation_density [Compressed|Wide] Default: Wide
+
+# Density of a where clause
+# where_density [Compressed|Tall|CompressedIfEmpty|Vertical] Default: CompressedIfEmpty
+
+# Indentation of a where clause
+# where_indent [Inherit|Tabbed|Visual] Default: Tabbed
+
+# Element layout inside a where clause
+# where_layout [Vertical|Horizontal|HorizontalVertical|Mixed] Default: Vertical
+
+# Indentation style of a where predicate
+# where_pred_indent [Inherit|Tabbed|Visual] Default: Visual
+
+# Put a trailing comma on where clauses
+where_trailing_comma = false
+
+# Indentation of generics
+# generics_indent [Inherit|Tabbed|Visual] Default: Visual
+
+# If there is a trailing comma on structs
+# struct_trailing_comma [Always|Never|Vertical] Default: Vertical
+
+# If there is a trailing comma on literal structs
+# struct_lit_trailing_comma [Always|Never|Vertical] Default: Vertical
+
+# Style of struct definition
+# struct_lit_style [Visual|Block] Default: Block
+
+# Multiline style on literal structs
+# struct_lit_multiline_style [PreferSingle|ForceMulti] Default: PreferSingle
+
+# Put a trailing comma on enum declarations
+# enum_trailing_comma <boolean> Default: true
+
+# Report all, none or unnumbered occurrences of TODO in source file comments
+report_todo = 'Unnumbered'
+
+# Report all, none or unnumbered occurrences of FIXME in source file comments
+report_fixme = 'Unnumbered'
+
+# Indent on chain base
+# chain_base_indent [Inherit|Tabbed|Visual] Default: Tabbed
+
+# Indentation of chain
+# chain_indent [Inherit|Tabbed|Visual] Default: Tabbed
+
+# Allow last call in method chain to break the line
+# chains_overflow_last <boolean> Default: true
+
+# Reorder import statements alphabetically
+reorder_imports = true
+
+# Reorder lists of names in import statements alphabetically
+reorder_imported_names = true
+
+# Maximum line length for single line if-else expressions. A value of zero means always break if-else expressions.
+# single_line_if_else_max_width <unsigned integer> Default: 50
+
+# Format string literals where necessary
+format_strings = true
+
+# Always format string literals
+force_format_strings = false
+
+# Retain some formatting characteristics from the source code
+take_source_hints = true
+
+# Use tab characters for indentation, spaces for alignment
+hard_tabs = false
+
+# Break comments to fit on the line
+# wrap_comments = true
+
+# Convert /* */ comments to // comments where possible
+normalize_comments = true
+
+# Wrap multiline match arms in blocks
+# wrap_match_arms <boolean> Default: true
+
+# Put a trailing comma after a block based match arm (non-block arms are not affected)
+# match_block_trailing_comma <boolean> Default: false
+
+# Put a trailing comma after a wildcard arm
+# match_wildcard_trailing_comma <boolean> Default: true
+
+# How many lines a closure must have before it is block indented. -1 means never use block indent.
+# closure_block_indent_threshold <signed integer> Default: 5
+
+# Leave a space before the colon in a type annotation
+space_before_type_annotation = false
+
+# Leave a space after the colon in a type annotation
+space_after_type_annotation_colon = true
+
+# Leave a space before the colon in a trait or lifetime bound
+space_before_bound = false
+
+# Leave a space after the colon in a trait or lifetime bound
+space_after_bound_colon = true
+
+# Put spaces around the  .. and ... range operators
+spaces_around_ranges = true
+
+# Put spaces within non-empty generic arguments
+spaces_within_angle_brackets = false
+
+# Put spaces within non-empty square brackets
+spaces_within_square_brackets = false
+
+# Put spaces within non-empty parentheses
+spaces_within_parens = false
+
+# Replace uses of the try! macro by the ? shorthand
+use_try_shorthand = true
+
+# What Write Mode to use when none is supplied: Replace, Overwrite, Display, Diff, Coverage
+# write_mode [Replace|Overwrite|Display|Diff|Coverage|Plain|Checkstyle] Default: Replace
+
+# Replace strings of _ wildcards by a single .. in tuple patterns
+condense_wildcard_suffices = true

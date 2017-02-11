@@ -1,6 +1,5 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use ::raw::*;
 
 pub fn initialize_pdp(module: i32) -> HalResult<()> {
     hal_call![ ptr HAL_InitializePDP(module) ]

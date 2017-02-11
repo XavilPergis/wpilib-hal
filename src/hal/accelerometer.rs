@@ -1,7 +1,5 @@
 use ::raw::*;
 
-use std::convert::{From, Into};
-
 pub type RawAccelerometerRange = HAL_AccelerometerRange;
 
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]

@@ -1,6 +1,6 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use hal::handle::*;
+use ::raw::*;
 
 pub fn hal_initialize_relay_port(port_handle: PortHandle, fwd: bool) -> HalResult<RelayHandle> {
     hal_call![ ptr HAL_InitializeRelayPort(port_handle.get_handle(), fwd as HAL_Bool) ]

@@ -1,7 +1,6 @@
-use ::raw::*;
-
-use super::handle::{Handle, AnalogInputHandle};
+use super::handle::{AnalogInputHandle, Handle};
 use ::error::*;
+use ::raw::*;
 
 pub struct Accumulator {
     handle: AnalogInputHandle,
@@ -66,7 +65,7 @@ fn get_accumulator_count(port: AnalogInputHandle) -> HalResult<i64> {
 }
 
 // TODO: Do we really need this?
-//fn HAL_GetAccumulatorOutput(analogPortHandle: HAL_AnalogInputHandle,
+// fn HAL_GetAccumulatorOutput(analogPortHandle: HAL_AnalogInputHandle,
 //                                value: *mut i64,
 //                                count: *mut i64,
 //                                status: *mut i32);

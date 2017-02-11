@@ -1,6 +1,6 @@
-use ::raw::*;
-use hal::handle::*;
 use ::error::*;
+use hal::handle::*;
+use ::raw::*;
 
 pub fn initialize_compressor(module: i32) -> HalResult<CompressorHandle> {
     hal_call![ ptr HAL_InitializeCompressor(module) ].map(|n| CompressorHandle(n))

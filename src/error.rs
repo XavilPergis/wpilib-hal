@@ -1,12 +1,13 @@
 use raw::*;
-use std::ffi::NulError;
 use std::error::Error;
+use std::ffi::NulError;
 use std::fmt;
 
 /// Result type encompassing most errors that are returned in this library
 pub type HalResult<T> = Result<T, HalError>;
 
-// Because it turns out WPILIB is really messy and have two ways of indicating failure...
+// Because it turns out WPILIB is really messy and have two ways of indicating
+// failure...
 // Or not at all...
 
 /// Call a HAL function and wrap the output in a `HalResult`
@@ -57,32 +58,44 @@ pub enum FfiError {
     Unknown(i32),
 }
 
+macro_rules! arr_to_str {
+    ($val:ident) => {{
+        use std::str;
+        str::from_utf8(&$crate::raw::$val[0..$val.len()-1]).unwrap().to_string()
+    }};
+}
 impl fmt::Display for FfiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            FfiError::SampleRateTooHigh => "Sample rate too high".into(),
-            FfiError::VoltageOutOfRange => "Voltage out of range".into(),
-            FfiError::LoopTimingError => "Loop timing error".into(),
-            FfiError::SpiWriteNoMosi => "SPI write no MOSI (Master Out, Slave In)".into(),
-            FfiError::SpiReadNoMiso => "SPI read no MISO (Master In, Slave Out)".into(),
-            FfiError::SpiReadNoData => "SPI read no data".into(),
-            FfiError::IncompatibleState => "Incompatible state".into(),
-            FfiError::NoAvailableResources => "No available resources".into(),
-            FfiError::NullParameter => "Null parameter".into(),
-            FfiError::AnalogTriggerLimitOrderError => "Analog trigger limit order".into(), // TODO
-            FfiError::AnalogTriggerPuseOutputError => "Analog trigger pulse output".into(), // TODO
-            FfiError::ParameterOutOfRange => "Parameter out of range".into(),
-            FfiError::ResourceIsAllocated => "Resource is already allocated".into(),
-            FfiError::ResourceOutOfRange => "Resource is out of range".into(),
-            FfiError::InvalidAccumulatorChannel => "Channel is not an accumulator channel".into(),
-            FfiError::CounterNotSupported => "Counter is not supported".into(),
-            FfiError::PwmScaleError => "PWM scale error".into(),
-            FfiError::HandleError => "Handle error".into(),
-            FfiError::SerialPortNotFound => "Serial port not found".into(),
-            FfiError::SerialPortNotOpen => "Serial port not open".into(),
-            FfiError::SerialPortError => "Serial port error".into(),
-            FfiError::ThreadPriorityError => "Thread priority error".into(),
-            FfiError::ThreadPriorityRangeError => "Thread priorite range error".into(),
+            FfiError::SampleRateTooHigh => arr_to_str!(SAMPLE_RATE_TOO_HIGH_MESSAGE),
+            FfiError::VoltageOutOfRange => arr_to_str!(VOLTAGE_OUT_OF_RANGE_MESSAGE),
+            FfiError::LoopTimingError => arr_to_str!(LOOP_TIMING_ERROR_MESSAGE),
+            FfiError::SpiWriteNoMosi => arr_to_str!(SPI_WRITE_NO_MOSI_MESSAGE),
+            FfiError::SpiReadNoMiso => arr_to_str!(SPI_READ_NO_MISO_MESSAGE),
+            FfiError::SpiReadNoData => arr_to_str!(SPI_READ_NO_DATA_MESSAGE),
+            FfiError::IncompatibleState => arr_to_str!(INCOMPATIBLE_STATE_MESSAGE),
+            FfiError::NoAvailableResources => arr_to_str!(NO_AVAILABLE_RESOURCES_MESSAGE),
+            FfiError::NullParameter => arr_to_str!(NULL_PARAMETER_MESSAGE),
+            FfiError::AnalogTriggerLimitOrderError => {
+                arr_to_str!(ANALOG_TRIGGER_LIMIT_ORDER_ERROR_MESSAGE)
+            }
+            FfiError::AnalogTriggerPuseOutputError => {
+                arr_to_str!(ANALOG_TRIGGER_PULSE_OUTPUT_ERROR_MESSAGE)
+            }
+            FfiError::ParameterOutOfRange => arr_to_str!(PARAMETER_OUT_OF_RANGE_MESSAGE),
+            FfiError::ResourceIsAllocated => arr_to_str!(RESOURCE_IS_ALLOCATED_MESSAGE),
+            FfiError::ResourceOutOfRange => arr_to_str!(RESOURCE_OUT_OF_RANGE_MESSAGE),
+            FfiError::InvalidAccumulatorChannel => {
+                arr_to_str!(HAL_INVALID_ACCUMULATOR_CHANNEL_MESSAGE)
+            }
+            FfiError::CounterNotSupported => arr_to_str!(HAL_COUNTER_NOT_SUPPORTED_MESSAGE),
+            FfiError::PwmScaleError => arr_to_str!(HAL_PWM_SCALE_ERROR_MESSAGE),
+            FfiError::HandleError => arr_to_str!(HAL_HANDLE_ERROR_MESSAGE),
+            FfiError::SerialPortNotFound => arr_to_str!(HAL_SERIAL_PORT_NOT_FOUND_MESSAGE),
+            FfiError::SerialPortNotOpen => arr_to_str!(HAL_SERIAL_PORT_OPEN_ERROR_MESSAGE),
+            FfiError::SerialPortError => arr_to_str!(HAL_SERIAL_PORT_ERROR_MESSAGE),
+            FfiError::ThreadPriorityError => "?".into(),
+            FfiError::ThreadPriorityRangeError => "?".into(),
 
             /// Some other status code that doesn't have an associated variant
             FfiError::Unknown(e) => format!("Unknown error: {}", e),
@@ -98,14 +111,17 @@ impl Error for FfiError {
     }
 }
 
-/// An aggregate type that represents all types of errors that could be returned by this crate
+/// An aggregate type that represents all types of errors that could be
+/// returned by this crate
 #[derive(Debug)]
 pub enum HalError {
     /// An FFI error
     Hal(FfiError),
-    /// A string that was provided contained a null byte and could not be converted into a CString
+    /// A string that was provided contained a null byte and could not be
+    /// converted into a CString
     NullError(NulError),
-    /// Tried to create a resource struct, but its handle was already initialized
+    /// Tried to create a resource struct, but its handle was already
+    /// initialized
     ResourceAlreadyInitialized,
 }
 
