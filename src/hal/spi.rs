@@ -1,10 +1,6 @@
 use ::error::*;
 use ::raw::*;
 
-lazy_static! {
-    static ref INITIALIZED_SPI_PORTS: Vec<i32> = Vec::new();
-}
-
 /// Which port the SPI is on
 #[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum SpiPort {
@@ -88,6 +84,7 @@ pub fn set_spi_handle(port: i32, handle: i32) {
     unsafe { HAL_SetSPIHandle(port, handle) }
 }
 
+/// Options for an SPI Accumulator
 #[derive(Debug)]
 pub struct SpiAccumulatorOptions {
     period: i32,
@@ -101,42 +98,42 @@ pub struct SpiAccumulatorOptions {
     big_endian: bool,
 }
 
-fn init_spi_accumulator(port: i32, opts: SpiAccumulatorOptions) -> HalResult<()> {
+pub fn init_spi_accumulator(port: i32, opts: SpiAccumulatorOptions) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_InitSPIAccumulator(port, opts.period, opts.cmd, opts.transfer_size, opts.valid_mask, opts.valid_value, opts.data_shift, opts.data_size, opts.is_signed as HAL_Bool, opts.big_endian as HAL_Bool) ] }
 }
 
-fn free_spi_accumulator(port: i32) -> HalResult<()> {
+pub fn free_spi_accumulator(port: i32) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_FreeSPIAccumulator(port) ] }
 }
 
-fn reset_spi_accumulator(port: i32) -> HalResult<()> {
+pub fn reset_spi_accumulator(port: i32) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_ResetSPIAccumulator(port) ] }
 }
 
-fn set_spi_accumulator_center(port: i32, center: i32) -> HalResult<()> {
+pub fn set_spi_accumulator_center(port: i32, center: i32) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_SetSPIAccumulatorCenter(port, center) ] }
 }
 
-fn set_spi_accumulator_deadband(port: i32, deadband: i32) -> HalResult<()> {
+pub fn set_spi_accumulator_deadband(port: i32, deadband: i32) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_SetSPIAccumulatorDeadband(port, deadband) ] }
 }
 
-fn hal_get_spi_accumulator_last_value(port: i32) -> HalResult<i32> {
+pub fn hal_get_spi_accumulator_last_value(port: i32) -> HalResult<i32> {
     unsafe { hal_call![ ptr HAL_GetSPIAccumulatorLastValue(port) ] }
 }
 
-fn hal_get_spi_accumulator_value(port: i32) -> HalResult<i64> {
+pub fn hal_get_spi_accumulator_value(port: i32) -> HalResult<i64> {
     unsafe { hal_call![ ptr HAL_GetSPIAccumulatorValue(port) ] }
 }
 
-fn hal_get_spi_accumulator_count(port: i32) -> HalResult<i64> {
+pub fn hal_get_spi_accumulator_count(port: i32) -> HalResult<i64> {
     unsafe { hal_call![ ptr HAL_GetSPIAccumulatorCount(port) ] }
 }
 
-fn hal_get_spi_accumulator_average(port: i32) -> HalResult<f64> {
+pub fn hal_get_spi_accumulator_average(port: i32) -> HalResult<f64> {
     unsafe { hal_call![ ptr HAL_GetSPIAccumulatorAverage(port) ] }
 }
 
-fn get_spi_accumulator_output(port: i32, mut value: i64, mut count: i64) -> HalResult<()> {
+pub fn get_spi_accumulator_output(port: i32, mut value: i64, mut count: i64) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_GetSPIAccumulatorOutput(port, &mut value, &mut count) ] }
 }

@@ -1,5 +1,6 @@
 use ::error::*;
 use ::raw::*;
+use serial_io::RobotIoPort;
 
 lazy_static! {
     static ref INITIALIZED_I2C_PORTS: Vec<i32> = Vec::new();
@@ -13,6 +14,7 @@ pub enum I2cPort {
 }
 
 impl I2cPort {
+    /// Get the integer representation of the port
     pub fn get_port(&self) -> i32 {
         match *self {
             I2cPort::OnBoard => 0,
@@ -21,26 +23,39 @@ impl I2cPort {
     }
 }
 
-fn initialize_i2c(port: i32) -> HalResult<()> {
+pub fn initialize_i2c(port: i32) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_InitializeI2C(port) ] }
 }
 
 // TODO
-// fn transaction_i2c(port: i32, device_address: i32, dataToSend: *mut u8,
+// pub fn transaction_i2c(port: i32, device_address: i32, dataToSend: *mut u8,
 // sendSize: i32, dataReceived: *mut u8, receiveSize: i32) -> i32 {
 //
 //
 
-fn write_i2c(port: i32, device_address: i32, data_to_send: &[u8], send_size: i32) -> i32 {
-    unsafe {
-        HAL_WriteI2C(port, device_address, data_to_send.as_ptr() as *mut u8, send_size)
+/// Write a buffer to the I2C
+pub fn write_i2c(io_port: RobotIoPort, data_to_send: &[u8], send_size: i32) -> HalResult<i32> {
+    if let RobotIoPort::I2c(port, address) = io_port {
+        unsafe { Ok(HAL_WriteI2C(port, address, data_to_send.as_ptr() as *mut u8, send_size)) }
+    } else {
+        Err(HalError::WrongIoInterface)
     }
 }
 
-fn read_i2c(port: i32, device_address: i32, buffer: &mut [u8], count: i32) -> i32 {
-    unsafe { HAL_ReadI2C(port, device_address, buffer.as_mut_ptr(), count) }
+/// Read a buffer of data from the I2C
+pub fn read_i2c(io_port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
+    if let RobotIoPort::I2c(port, address) = io_port {
+        unsafe { Ok(HAL_ReadI2C(port, address, buffer.as_mut_ptr(), count)) }
+    } else {
+        Err(HalError::WrongIoInterface)
+    }
 }
 
-fn close_i2c(port: i32) {
-    unsafe { HAL_CloseI2C(port) }
+/// Close an I2C interface
+pub fn close_i2c(io_port: RobotIoPort) -> HalResult<()> {
+    if let RobotIoPort::I2c(port, _) = io_port {
+        unsafe { Ok(HAL_CloseI2C(port)) }
+    } else {
+        Err(HalError::WrongIoInterface)
+    }
 }

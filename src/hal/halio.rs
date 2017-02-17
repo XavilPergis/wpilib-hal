@@ -1,3 +1,11 @@
+//! Higher-order functions to abstract over different IO mechanisms on the RoboRIO
+//!
+//! ## Example
+//! ```rust,no_run
+//! let mut data = b"Hello world!";
+//! halio::io_write(i2c::write, RobotIoPort::I2c(), &data, data.len())
+//! ```
+
 use ::error::*;
 use serial::SerialPort;
 use spi::SpiPort;
@@ -5,6 +13,7 @@ use spi::SpiPort;
 pub enum RobotIoPort {
     Serial(SerialPort),
     Spi(SpiPort),
+    /// (port, address)
     I2c(i32, i32)
 }
 

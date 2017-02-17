@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 pub type Handle              = ::raw::HAL_Handle;
 pub type PortHandle          = ::raw::HAL_PortHandle;
 pub type AnalogInputHandle   = ::raw::HAL_AnalogInputHandle;
