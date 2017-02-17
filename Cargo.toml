@@ -14,9 +14,9 @@ license = "MIT"
 
 [dependencies]
 # Any version of clippy should work
-clippy = { version = "*", optional = true }
-time = "0.1.*"
-lazy_static = "0.2.*"
+clippy = { version = "0.0.114", optional = true }
+time = "0.1.36"
+lazy_static = "0.2.2"
 
 [build-dependencies]
 bindgen = "0.22.0"
