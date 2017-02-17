@@ -1,6 +1,6 @@
 use ::error::*;
 use ::raw::*;
-use serial_io::RobotIoPort;
+use halio::RobotIoPort;
 
 lazy_static! {
     static ref INITIALIZED_I2C_PORTS: Vec<i32> = Vec::new();

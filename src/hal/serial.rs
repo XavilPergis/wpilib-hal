@@ -1,7 +1,7 @@
 use ::error::*;
 use ::raw::*;
 use std::os::raw::c_char;
-use serial_io::RobotIoPort;
+use halio::RobotIoPort;
 
 pub type RawSerialPort = HAL_SerialPort;
 

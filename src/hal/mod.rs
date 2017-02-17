@@ -72,7 +72,7 @@ pub mod pwm;
 pub mod relay;
 
 /// Aggregation of similar APIs (SPI, I2C, Serial port, OS serial port)
-pub mod serial_io;
+pub mod halio;
 
 /// Bindings to serial ports
 pub mod serial;
