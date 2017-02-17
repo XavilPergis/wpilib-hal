@@ -4,6 +4,14 @@ version = "0.1.1"
 authors = ["XavilPergis <max.duzen@gmail.com>"]
 build = "build.rs"
 
+description = "Low-level bindings to WPILib's HAL. DO NOT USE THIS YET. THIS IS JUST TO SECURE THE NAME."
+repository = "https://github.com/XavilPergis/wpilib-hal"
+readme = "./README.md"
+
+keywords = ["WPILib", "FRC", "HAL", "robotics", "FIRST"]
+categories = ["external-ffi-bindings"]
+license = "MIT"
+
 [dependencies]
 # Any version of clippy should work
 clippy = { version = "*", optional = true }
