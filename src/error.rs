@@ -14,13 +14,21 @@ pub type HalResult<T> = Result<T, HalError>;
 #[macro_export]
 macro_rules! hal_call {
     (ptr $function:ident($($arg:expr),*)) => {{
-        let mut status = 0;
-        let result = unsafe { $function($($arg,)* &mut status as *mut i32) };
-        if status == 0 { Ok(result) } else { Err($crate::error::HalError::from(status)) }
+        if $crate::hal::hal_is_initialized() {
+            let mut status = 0;
+            let result = unsafe { $function($($arg,)* &mut status as *mut i32) };
+            if status == 0 { Ok(result) } else { Err($crate::error::HalError::from(status)) }
+        } else {
+            Err($crate::error::HalError::HalNotInitialized)
+        }
     }};
     (ret $function:ident($($arg:expr),*)) => {{
-        let status = unsafe { $function($($arg,)*) };
-        if status == 0 { Ok(()) } else { Err($crate::error::HalError::from(status)) }
+        if $crate::hal::hal_is_initialized() {
+            let status = unsafe { $function($($arg,)*) };
+            if status == 0 { Ok(()) } else { Err($crate::error::HalError::from(status)) }
+        } else {
+            Err($crate::error::HalError::HalNotInitialized)
+        }
     }};
 }
 
@@ -76,18 +84,12 @@ impl fmt::Display for FfiError {
             FfiError::IncompatibleState => arr_to_str!(INCOMPATIBLE_STATE_MESSAGE),
             FfiError::NoAvailableResources => arr_to_str!(NO_AVAILABLE_RESOURCES_MESSAGE),
             FfiError::NullParameter => arr_to_str!(NULL_PARAMETER_MESSAGE),
-            FfiError::AnalogTriggerLimitOrderError => {
-                arr_to_str!(ANALOG_TRIGGER_LIMIT_ORDER_ERROR_MESSAGE)
-            }
-            FfiError::AnalogTriggerPuseOutputError => {
-                arr_to_str!(ANALOG_TRIGGER_PULSE_OUTPUT_ERROR_MESSAGE)
-            }
+            FfiError::AnalogTriggerLimitOrderError => arr_to_str!(ANALOG_TRIGGER_LIMIT_ORDER_ERROR_MESSAGE),
+            FfiError::AnalogTriggerPuseOutputError => arr_to_str!(ANALOG_TRIGGER_PULSE_OUTPUT_ERROR_MESSAGE),
             FfiError::ParameterOutOfRange => arr_to_str!(PARAMETER_OUT_OF_RANGE_MESSAGE),
             FfiError::ResourceIsAllocated => arr_to_str!(RESOURCE_IS_ALLOCATED_MESSAGE),
             FfiError::ResourceOutOfRange => arr_to_str!(RESOURCE_OUT_OF_RANGE_MESSAGE),
-            FfiError::InvalidAccumulatorChannel => {
-                arr_to_str!(HAL_INVALID_ACCUMULATOR_CHANNEL_MESSAGE)
-            }
+            FfiError::InvalidAccumulatorChannel => arr_to_str!(HAL_INVALID_ACCUMULATOR_CHANNEL_MESSAGE),
             FfiError::CounterNotSupported => arr_to_str!(HAL_COUNTER_NOT_SUPPORTED_MESSAGE),
             FfiError::PwmScaleError => arr_to_str!(HAL_PWM_SCALE_ERROR_MESSAGE),
             FfiError::HandleError => arr_to_str!(HAL_HANDLE_ERROR_MESSAGE),
@@ -123,6 +125,14 @@ pub enum HalError {
     /// Tried to create a resource struct, but its handle was already
     /// initialized
     ResourceAlreadyInitialized,
+    /// HAL was not initialized, but we tried to invoke a HAL function.
+    HalNotInitialized,
+    /// Module did not have the right device for type
+    BadModuleType,
+    /// Channel did not have the right device for type
+    BadChannelType,
+    /// Some other custom error
+    Other(Box<Error + Send + Sync>),
 }
 
 impl fmt::Display for HalError {
@@ -130,9 +140,11 @@ impl fmt::Display for HalError {
         let msg = match *self {
             HalError::Hal(ref ffi_err) => ffi_err.description(),
             HalError::NullError(ref nul_err) => nul_err.description(),
-            HalError::ResourceAlreadyInitialized => {
-                "Tried to create a resource that was already initialized"
-            }
+            HalError::ResourceAlreadyInitialized => "Tried to create a resource that was already initialized",
+            HalError::HalNotInitialized => "HAL was not initialized, but a HAL function was invoked",
+            HalError::BadModuleType => "Module did not have the right device for type",
+            HalError::BadChannelType => "Channel did not have the right device for type",
+            HalError::Other(ref err) => err.description(),
         };
 
         write!(f, "{}", msg)
@@ -191,5 +203,11 @@ impl From<i32> for HalError {
 impl From<NulError> for HalError {
     fn from(err: NulError) -> HalError {
         HalError::NullError(err)
+    }
+}
+
+impl From<Box<Error + Send + Sync>> for HalError {
+    fn from(err: Box<Error + Send + Sync>) -> HalError {
+        HalError::Other(err)
     }
 }

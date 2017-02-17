@@ -5,6 +5,7 @@ use raw::*;
 
 use std::ffi::CString;
 use std::mem;
+use std::ops::Index;
 
 use time::Duration;
 
@@ -78,6 +79,13 @@ pub struct JoystickAxes {
     count: i16,
 }
 
+impl Index<usize> for JoystickAxes {
+    type Output = f32;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.axes[index]
+    }
+}
+
 impl From<HAL_JoystickAxes> for JoystickAxes {
     fn from(raw_axes: HAL_JoystickAxes) -> JoystickAxes {
         JoystickAxes {
@@ -93,6 +101,13 @@ pub struct JoystickPovs {
     /// Turns out, each element is actually the angle of the POV in degrees.
     povs: [i16; MAX_JOYSTICK_POVS],
     count: i16,
+}
+
+impl Index<usize> for JoystickPovs {
+    type Output = i16;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.povs[index]
+    }
 }
 
 impl From<HAL_JoystickPOVs> for JoystickPovs {
@@ -111,7 +126,14 @@ pub struct JoystickButtons {
     // An i32 is 32 bit; it can hold 32 different buttons
     buttons_down: [bool; 32],
     // TODO: Leaving this in until I know what it does
-    count: u16,
+    pub count: u16,
+}
+
+impl Index<usize> for JoystickButtons {
+    type Output = bool;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.buttons_down[index]
+    }
 }
 
 impl From<HAL_JoystickButtons> for JoystickButtons {

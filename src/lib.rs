@@ -3,11 +3,12 @@
 //! any way
 #![feature(str_escape)]
 #![feature(custom_attribute)]
+#![feature(field_init_shorthand)]
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-// #![deny(missing_docs)]
+#![warn(missing_docs)]
 #![allow(dead_code)]
 
 #[macro_use]

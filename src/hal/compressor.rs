@@ -2,54 +2,79 @@ use ::error::*;
 use hal::handle::*;
 use ::raw::*;
 
-pub fn initialize_compressor(module: i32) -> HalResult<CompressorHandle> {
-    hal_call![ ptr HAL_InitializeCompressor(module) ].map(|n| CompressorHandle(n))
+pub struct CompressorFaults {
+    pub current_too_high: bool,
+    pub current_too_high_sticky: bool,
+    pub shorted: bool,
+    pub shorted_sticky: bool,
+    pub not_connected: bool,
+    pub not_connected_sticky: bool,
 }
 
-pub fn check_compressor_module(module: i32) -> bool {
+pub fn initialize(module: i32) -> HalResult<CompressorHandle> {
+    // I *think* this checks to see if a compressor is on this module?
+    if self::check_module(module) {
+        hal_call![ ptr HAL_InitializeCompressor(module) ]
+    } else {
+        Err(HalError::BadModuleType)
+    }
+}
+
+pub fn check_module(module: i32) -> bool {
     unsafe { HAL_CheckCompressorModule(module) != 0 }
 }
 
-pub fn get_compressor(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressor(handle.get_handle()) ].map(|n| n != 0)
+pub fn get(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressor(handle) ].map(|n| n != 0)
 }
 
-pub fn set_compressor_closed_loop_control(handle: CompressorHandle, value: bool) -> HalResult<()> {
-    hal_call![ ptr HAL_SetCompressorClosedLoopControl(handle.get_handle(), value as HAL_Bool) ]
+pub fn set_closed_loop_control(handle: CompressorHandle, value: bool) -> HalResult<()> {
+    hal_call![ ptr HAL_SetCompressorClosedLoopControl(handle, value as HAL_Bool) ]
 }
 
-pub fn get_compressor_closed_loop_control(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorClosedLoopControl(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_closed_loop_control(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorClosedLoopControl(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_pressure_switch(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorPressureSwitch(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_pressure_switch(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorPressureSwitch(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_current(handle: CompressorHandle) -> HalResult<f64> {
-    hal_call![ ptr HAL_GetCompressorCurrent(handle.get_handle()) ]
+pub fn get_current(handle: CompressorHandle) -> HalResult<f64> {
+    hal_call![ ptr HAL_GetCompressorCurrent(handle) ]
 }
 
-pub fn get_compressor_current_too_high_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorCurrentTooHighFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_faults(handle: CompressorHandle) -> HalResult<CompressorFaults> {
+    Ok(CompressorFaults {
+        current_too_high:        get_current_too_high_fault(handle)?,
+        current_too_high_sticky: get_current_too_high_sticky_fault(handle)?,
+        shorted:                 get_shorted_fault(handle)?,
+        shorted_sticky:          get_shorted_sticky_fault(handle)?,
+        not_connected:           get_not_connected_fault(handle)?,
+        not_connected_sticky:    get_not_connected_sticky_fault(handle)?,
+    })
 }
 
-pub fn get_compressor_current_too_high_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorCurrentTooHighStickyFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_current_too_high_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorCurrentTooHighFault(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_shorted_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorShortedStickyFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_current_too_high_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorCurrentTooHighStickyFault(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_shorted_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorShortedFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_shorted_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorShortedStickyFault(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_not_connected_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorNotConnectedStickyFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_shorted_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorShortedFault(handle) ].map(|n| n != 0)
 }
 
-pub fn get_compressor_not_connected_fault(handle: CompressorHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetCompressorNotConnectedFault(handle.get_handle()) ].map(|n| n != 0)
+pub fn get_not_connected_sticky_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorNotConnectedStickyFault(handle) ].map(|n| n != 0)
+}
+
+pub fn get_not_connected_fault(handle: CompressorHandle) -> HalResult<bool> {
+    hal_call![ ptr HAL_GetCompressorNotConnectedFault(handle) ].map(|n| n != 0)
 }

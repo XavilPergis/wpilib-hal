@@ -2,34 +2,12 @@ use ::error::*;
 use hal::handle::*;
 use ::raw::*;
 
-// TODO: trait or struct?
-pub trait AnalogInput {
-    fn get_handle(&self) -> AnalogInputHandle;
-
-    fn get_raw(&self) -> HalResult<i32> {
-        self::get_analog_value(self.get_handle())
-    }
-
-    fn get_voltage(&self) -> HalResult<f64> {
-        self::get_analog_voltage(self.get_handle())
-    }
-
-    fn get_average_raw(&self) -> HalResult<i32> {
-        self::get_analog_average_value(self.get_handle())
-    }
-
-    fn get_average_voltage(&self) -> HalResult<f64> {
-        self::get_analog_average_voltage(self.get_handle())
-    }
-}
-
 pub fn initialize_analog_input_port(handle: PortHandle) -> HalResult<AnalogInputHandle> {
-    hal_call![ ptr HAL_InitializeAnalogInputPort(handle.get_handle()) ]
-        .map(|n| AnalogInputHandle(n))
+    hal_call![ ptr HAL_InitializeAnalogInputPort(handle) ]
 }
 
 pub fn free_analog_input_port(handle: AnalogInputHandle) {
-    unsafe { HAL_FreeAnalogInputPort(handle.get_handle()) }
+    unsafe { HAL_FreeAnalogInputPort(handle) }
 }
 
 // TODO: What does this function do?
@@ -51,45 +29,45 @@ pub fn get_analog_sample_rate() -> HalResult<f64> {
 }
 
 pub fn set_analog_average_bits(handle: AnalogInputHandle, bits: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAnalogAverageBits(handle.get_handle(), bits) ]
+    hal_call![ ptr HAL_SetAnalogAverageBits(handle, bits) ]
 }
 
 pub fn get_analog_average_bits(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogAverageBits(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogAverageBits(handle) ]
 }
 
 pub fn set_analog_oversample_bits(handle: AnalogInputHandle, bits: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAnalogOversampleBits(handle.get_handle(), bits) ]
+    hal_call![ ptr HAL_SetAnalogOversampleBits(handle, bits) ]
 }
 
 pub fn get_analog_oversample_bits(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogOversampleBits(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogOversampleBits(handle) ]
 }
 
 pub fn get_analog_value(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogValue(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogValue(handle) ]
 }
 
 pub fn get_analog_average_value(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogAverageValue(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogAverageValue(handle) ]
 }
 
 pub fn get_analog_volts_to_value(handle: AnalogInputHandle, voltage: f64) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogVoltsToValue(handle.get_handle(), voltage) ]
+    hal_call![ ptr HAL_GetAnalogVoltsToValue(handle, voltage) ]
 }
 
 pub fn get_analog_voltage(handle: AnalogInputHandle) -> HalResult<f64> {
-    hal_call![ ptr HAL_GetAnalogVoltage(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogVoltage(handle) ]
 }
 
 pub fn get_analog_average_voltage(handle: AnalogInputHandle) -> HalResult<f64> {
-    hal_call![ ptr HAL_GetAnalogAverageVoltage(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogAverageVoltage(handle) ]
 }
 
 pub fn get_analog_lsb_weight(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogLSBWeight(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogLSBWeight(handle) ]
 }
 
 pub fn get_analog_offset(handle: AnalogInputHandle) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetAnalogOffset(handle.get_handle()) ]
+    hal_call![ ptr HAL_GetAnalogOffset(handle) ]
 }

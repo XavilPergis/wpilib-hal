@@ -3,6 +3,11 @@ use ::handle::*;
 use ::raw::*;
 use std::ffi::CStr;
 use std::os::raw::c_char;
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref HAL_INITIALIZED: Mutex<bool> = Mutex::new(false);
+}
 
 pub mod handle;
 
@@ -115,7 +120,7 @@ pub fn get_fpga_revision() -> HalResult<i64> {
 }
 
 pub fn get_runtime_type() -> RuntimeType {
-    RuntimeType::from(unsafe { HAL_GetRuntimeType() })
+    unsafe { RuntimeType::from(HAL_GetRuntimeType()) }
 }
 
 pub fn get_fpga_button() -> HalResult<bool> {
@@ -135,11 +140,11 @@ pub fn base_initialize() -> HalResult<()> {
 }
 
 pub fn get_port(channel: i32) -> PortHandle {
-    PortHandle(unsafe { HAL_GetPort(channel) })
+    unsafe { HAL_GetPort(channel) }
 }
 
 pub fn get_port_with_module(module: i32, channel: i32) -> PortHandle {
-    PortHandle(unsafe { HAL_GetPortWithModule(module, channel) })
+    unsafe { HAL_GetPortWithModule(module, channel) }
 }
 
 pub fn get_fpga_time() -> HalResult<u64> {
@@ -148,7 +153,14 @@ pub fn get_fpga_time() -> HalResult<u64> {
 
 /// Initialize the HAL
 pub fn hal_initialize(mode: i32) -> i32 {
+    let mut initialized = HAL_INITIALIZED.lock().unwrap();
+    *initialized = true;
+
     unsafe { HAL_Initialize(mode) }
+}
+
+pub fn hal_is_initialized() -> bool {
+    *HAL_INITIALIZED.lock().unwrap()
 }
 
 pub fn report(resource: i32, instance_number: i32, context: i32, feature: &[u8]) -> i64 {

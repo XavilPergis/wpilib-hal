@@ -1,26 +1,27 @@
 use ::raw::*;
 
+#[allow(missing_docs)]
 pub type RawAccelerometerRange = HAL_AccelerometerRange;
 
+/// The range of g-force the accelerometer will output. `Max4G` means that it will
+/// output a maximum value of 4g
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum AccelerometerRange {
-    AccelerometerRange2G,
-    AccelerometerRange4G,
-    AccelerometerRange8G,
+    /// 8g maximum output
+    Max8G,
+    /// 4g maximum output
+    Max4G,
+    /// 2g maximum output
+    Max2G,
 }
 
 impl AccelerometerRange {
+    /// Converts the enum back to the FFI enum
     pub fn into_raw(&self) -> RawAccelerometerRange {
         match *self {
-            AccelerometerRange::AccelerometerRange2G => {
-                HAL_AccelerometerRange::HAL_AccelerometerRange_k2G
-            }
-            AccelerometerRange::AccelerometerRange4G => {
-                HAL_AccelerometerRange::HAL_AccelerometerRange_k4G
-            }
-            AccelerometerRange::AccelerometerRange8G => {
-                HAL_AccelerometerRange::HAL_AccelerometerRange_k8G
-            }
+            AccelerometerRange::Max8G => HAL_AccelerometerRange::HAL_AccelerometerRange_k2G,
+            AccelerometerRange::Max4G => HAL_AccelerometerRange::HAL_AccelerometerRange_k4G,
+            AccelerometerRange::Max2G => HAL_AccelerometerRange::HAL_AccelerometerRange_k8G
         }
     }
 }
@@ -28,35 +29,36 @@ impl AccelerometerRange {
 impl From<RawAccelerometerRange> for AccelerometerRange {
     fn from(raw: RawAccelerometerRange) -> Self {
         match raw {
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k2G => {
-                AccelerometerRange::AccelerometerRange2G
-            }
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k4G => {
-                AccelerometerRange::AccelerometerRange4G
-            }
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k8G => {
-                AccelerometerRange::AccelerometerRange8G
-            }
+            HAL_AccelerometerRange::HAL_AccelerometerRange_k2G => AccelerometerRange::Max8G,
+            HAL_AccelerometerRange::HAL_AccelerometerRange_k4G => AccelerometerRange::Max4G,
+            HAL_AccelerometerRange::HAL_AccelerometerRange_k8G => AccelerometerRange::Max2G
         }
     }
 }
 
+/// Set the accelerometer to active or standby mode.  It must be in standby
+/// mode to change any configuration.
 pub fn set_accelerometer_active(active: bool) {
     unsafe { HAL_SetAccelerometerActive(active as HAL_Bool) }
 }
 
+/// Set the range of values that can be measured (either 2, 4, or 8 g-forces).
+/// The accelerometer should be in standby mode when this is called.
 pub fn set_accelerometer_range(range: AccelerometerRange) {
     unsafe { HAL_SetAccelerometerRange(range.into_raw()) }
 }
 
+/// Gets the acceleromenter's X (Left/right) value. Returns a value in units of 1 g-force.
 pub fn get_accelerometer_x() -> f64 {
     unsafe { HAL_GetAccelerometerX() }
 }
 
+/// Gets the acceleromenter's Y (Front/back) value. Returns a value in units of 1 g-force.
 pub fn get_accelerometer_y() -> f64 {
     unsafe { HAL_GetAccelerometerY() }
 }
 
+/// Gets the acceleromenter's Z (Top/bottom) value. Returns a value in units of 1 g-force.
 pub fn get_accelerometer_z() -> f64 {
     unsafe { HAL_GetAccelerometerZ() }
 }
