@@ -9,31 +9,31 @@ pub struct AccumulatorOutput {
 }
 
 pub fn is_accumulator_channel(port: AnalogInputHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_IsAccumulatorChannel(port) ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_IsAccumulatorChannel(port) ].map(|n| n != 0) }
 }
 
 pub fn initialize(port: AnalogInputHandle) -> HalResult<()> {
-    hal_call![ ptr HAL_InitAccumulator(port) ]
+    unsafe { hal_call![ ptr HAL_InitAccumulator(port) ] }
 }
 
 pub fn reset(port: AnalogInputHandle) -> HalResult<()> {
-    hal_call![ ptr HAL_ResetAccumulator(port) ]
+    unsafe { hal_call![ ptr HAL_ResetAccumulator(port) ] }
 }
 
 pub fn set_center(port: AnalogInputHandle, center: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAccumulatorCenter(port, center) ]
+    unsafe { hal_call![ ptr HAL_SetAccumulatorCenter(port, center) ] }
 }
 
 pub fn set_deadband(port: AnalogInputHandle, deadband: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAccumulatorDeadband(port, deadband) ]
+    unsafe { hal_call![ ptr HAL_SetAccumulatorDeadband(port, deadband) ] }
 }
 
 pub fn get_value(port: AnalogInputHandle) -> HalResult<i64> {
-    hal_call![ ptr HAL_GetAccumulatorValue(port) ]
+    unsafe { hal_call![ ptr HAL_GetAccumulatorValue(port) ] }
 }
 
 pub fn get_accumulator_count(port: AnalogInputHandle) -> HalResult<i64> {
-    hal_call![ ptr HAL_GetAccumulatorCount(port) ]
+    unsafe { hal_call![ ptr HAL_GetAccumulatorCount(port) ] }
 }
 
 pub fn get_output(port: AnalogInputHandle) -> HalResult<AccumulatorOutput> {
@@ -41,7 +41,7 @@ pub fn get_output(port: AnalogInputHandle) -> HalResult<AccumulatorOutput> {
     let mut count = 0;
 
     // Load output into vars
-    hal_call![ ptr HAL_GetAccumulatorOutput(port, &mut value, &mut count) ]?;
+    unsafe { hal_call![ ptr HAL_GetAccumulatorOutput(port, &mut value, &mut count) ]?; }
 
     Ok(AccumulatorOutput { value, count })
 }

@@ -47,12 +47,12 @@ pub enum AnalogTriggerLimits {
 }
 
 pub fn initialize(handle: AnalogInputHandle, index: &mut i32) -> HalResult<AnalogTriggerHandle> {
-    hal_call![ ptr HAL_InitializeAnalogTrigger(handle, index) ]
+    unsafe { hal_call![ ptr HAL_InitializeAnalogTrigger(handle, index) ] }
 }
 
 /// TODO: WHAT DOES THIS DO
 pub fn clean(handle: AnalogTriggerHandle) -> HalResult<()> {
-    hal_call![ ptr HAL_CleanAnalogTrigger(handle) ]
+    unsafe { hal_call![ ptr HAL_CleanAnalogTrigger(handle) ] }
 }
 
 /// Set the bounds of trigger
@@ -66,18 +66,18 @@ pub fn clean(handle: AnalogTriggerHandle) -> HalResult<()> {
 pub fn set_limits(handle: AnalogTriggerHandle, limits: AnalogTriggerLimits) -> HalResult<()> {
     match limits {
         AnalogTriggerLimits::Raw(range) => {
-            hal_call![ ptr HAL_SetAnalogTriggerLimitsRaw(handle, range.start, range.end) ]
+            unsafe { hal_call![ ptr HAL_SetAnalogTriggerLimitsRaw(handle, range.start, range.end) ] }
         }
 
         AnalogTriggerLimits::Voltage(range) => {
-            hal_call![ ptr HAL_SetAnalogTriggerLimitsVoltage(handle, range.start, range.end) ]
+            unsafe { hal_call![ ptr HAL_SetAnalogTriggerLimitsVoltage(handle, range.start, range.end) ] }
         }
     }
 }
 
 /// Set whether the input is averaged over a few samples or not
 pub fn set_averaged(handle: AnalogTriggerHandle, use_averaged_value: bool) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAnalogTriggerAveraged(handle, use_averaged_value as HAL_Bool) ]
+    unsafe { hal_call![ ptr HAL_SetAnalogTriggerAveraged(handle, use_averaged_value as HAL_Bool) ] }
 }
 
 /// From [Screensteps Live](http://wpilib.screenstepslive.com/s/3120/m/7912/l/85776-analog-triggers)
@@ -88,20 +88,19 @@ pub fn set_averaged(handle: AnalogTriggerHandle, use_averaged_value: bool) -> Ha
 /// which errantly (due to averaging or sampling) appear within the window when detecting
 /// transitions using the Rising Edge and Falling Edge functionality of the analog trigger.
 pub fn set_filtered(handle: AnalogTriggerHandle, use_filtered_value: bool) -> HalResult<()> {
-    hal_call![ ptr HAL_SetAnalogTriggerFiltered(handle, use_filtered_value as HAL_Bool) ]
+    unsafe { hal_call![ ptr HAL_SetAnalogTriggerFiltered(handle, use_filtered_value as HAL_Bool) ] }
 }
 
 pub fn in_window(handle: AnalogTriggerHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetAnalogTriggerInWindow(handle) ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetAnalogTriggerInWindow(handle) ].map(|n| n != 0) }
 }
 
 pub fn get_state(handle: AnalogTriggerHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetAnalogTriggerTriggerState(handle) ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetAnalogTriggerTriggerState(handle) ].map(|n| n != 0) }
 }
 
 pub fn get_output(handle: AnalogTriggerHandle, trigger_type: AnalogTriggerType) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetAnalogTriggerOutput(handle, trigger_type.into_raw()) ]
-        .map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetAnalogTriggerOutput(handle, trigger_type.into_raw()) ].map(|n| n != 0) }
 }
 
 pub fn if_activated<F>(handle: AnalogTriggerHandle, trigger_type: AnalogTriggerType, func: F) where F: Fn() {

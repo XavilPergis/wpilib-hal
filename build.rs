@@ -40,6 +40,9 @@ fn main() {
         .whitelisted_function("HAL_.*|can.*")
         // Whitelist all the constants we need
         .whitelisted_var(CONST_NAMES.join("|"))
+        .bitfield_enum("HAL_ControlWord")
+        .no_convert_floats()
+        .derive_debug(true)
         .generate()
         .unwrap();
 

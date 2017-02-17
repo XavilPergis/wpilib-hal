@@ -112,11 +112,11 @@ pub fn get_error_message(code: i32) -> String {
 }
 
 pub fn get_fpga_version() -> HalResult<i32> {
-    hal_call![ ptr HAL_GetFPGAVersion() ]
+    unsafe { hal_call![ ptr HAL_GetFPGAVersion() ] }
 }
 
 pub fn get_fpga_revision() -> HalResult<i64> {
-    hal_call![ ptr HAL_GetFPGARevision() ]
+    unsafe { hal_call![ ptr HAL_GetFPGARevision() ] }
 }
 
 pub fn get_runtime_type() -> RuntimeType {
@@ -124,19 +124,19 @@ pub fn get_runtime_type() -> RuntimeType {
 }
 
 pub fn get_fpga_button() -> HalResult<bool> {
-    hal_call![ ptr HAL_GetFPGAButton() ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetFPGAButton() ].map(|n| n != 0) }
 }
 
 pub fn get_system_active() -> HalResult<bool> {
-    hal_call![ ptr HAL_GetSystemActive() ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetSystemActive() ].map(|n| n != 0) }
 }
 
 pub fn get_browned_out() -> HalResult<bool> {
-    hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0)
+    unsafe { hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0) }
 }
 
 pub fn base_initialize() -> HalResult<()> {
-    hal_call![ ptr HAL_BaseInitialize() ]
+    unsafe { hal_call![ ptr HAL_BaseInitialize() ] }
 }
 
 pub fn get_port(channel: i32) -> PortHandle {
@@ -148,7 +148,7 @@ pub fn get_port_with_module(module: i32, channel: i32) -> PortHandle {
 }
 
 pub fn get_fpga_time() -> HalResult<u64> {
-    hal_call![ ptr HAL_GetFPGATime() ]
+    unsafe { hal_call![ ptr HAL_GetFPGATime() ] }
 }
 
 /// Initialize the HAL

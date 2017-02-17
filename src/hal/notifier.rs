@@ -14,28 +14,28 @@ use ::raw::*;
 // pub fn initialize_notifier(process: HAL_NotifierProcessFunction,
 //                            param: *mut ::std::os::raw::c_void)
 //                            -> HalResult<NotifierHandle> {
-//     hal_call![ ptr HAL_InitializeNotifier() ]
+//     unsafe { hal_call![ ptr HAL_InitializeNotifier() ] }
 // }
 
 // pub fn initialize_notifier_threaded(process: HAL_NotifierProcessFunction,
 //                                     param: *mut ::std::os::raw::c_void)
 //                                     -> HalResult<NotifierHandle> {
-//     hal_call![ ptr HAL_InitializeNotifierThreaded() ]
+//     unsafe { hal_call![ ptr HAL_InitializeNotifierThreaded() ] }
 // }
 
 pub fn clean_notifier(handle: NotifierHandle) -> HalResult<()> {
-    hal_call![ ptr HAL_CleanNotifier(handle) ]
+    unsafe { hal_call![ ptr HAL_CleanNotifier(handle) ] }
 }
 
 // Oh fuck
 pub fn get_notifier_param(handle: NotifierHandle) -> HalResult<*mut ::std::os::raw::c_void> {
-    hal_call![ ptr HAL_GetNotifierParam(handle) ]
+    unsafe { hal_call![ ptr HAL_GetNotifierParam(handle) ] }
 }
 
 pub fn update_notifier_alarm(handle: NotifierHandle, trigger_time: u64) -> HalResult<()> {
-    hal_call![ ptr HAL_UpdateNotifierAlarm(handle, trigger_time) ]
+    unsafe { hal_call![ ptr HAL_UpdateNotifierAlarm(handle, trigger_time) ] }
 }
 
 pub fn stop_notifier_alarm(handle: NotifierHandle) -> HalResult<()> {
-    hal_call![ ptr HAL_StopNotifierAlarm(handle) ]
+    unsafe { hal_call![ ptr HAL_StopNotifierAlarm(handle) ] }
 }

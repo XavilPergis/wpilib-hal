@@ -16,7 +16,7 @@ macro_rules! hal_call {
     (ptr $function:ident($($arg:expr),*)) => {{
         if $crate::hal::hal_is_initialized() {
             let mut status = 0;
-            let result = unsafe { $function($($arg,)* &mut status as *mut i32) };
+            let result = $function($($arg,)* &mut status as *mut i32);
             if status == 0 { Ok(result) } else { Err($crate::error::HalError::from(status)) }
         } else {
             Err($crate::error::HalError::HalNotInitialized)
@@ -24,7 +24,7 @@ macro_rules! hal_call {
     }};
     (ret $function:ident($($arg:expr),*)) => {{
         if $crate::hal::hal_is_initialized() {
-            let status = unsafe { $function($($arg,)*) };
+            let status = $function($($arg,)*);
             if status == 0 { Ok(()) } else { Err($crate::error::HalError::from(status)) }
         } else {
             Err($crate::error::HalError::HalNotInitialized)
@@ -131,6 +131,8 @@ pub enum HalError {
     BadModuleType,
     /// Channel did not have the right device for type
     BadChannelType,
+    /// Tried to give the incorrect type of handle to a robot IO function
+    WrongIoInterface,
     /// Some other custom error
     Other(Box<Error + Send + Sync>),
 }
@@ -144,6 +146,7 @@ impl fmt::Display for HalError {
             HalError::HalNotInitialized => "HAL was not initialized, but a HAL function was invoked",
             HalError::BadModuleType => "Module did not have the right device for type",
             HalError::BadChannelType => "Channel did not have the right device for type",
+            HalError::WrongIoInterface => "Tried to give the incorrect type of handle to a robot IO function",
             HalError::Other(ref err) => err.description(),
         };
 

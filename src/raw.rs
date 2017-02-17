@@ -94,13 +94,13 @@ extern "C" {
     pub fn HAL_SetAccelerometerRange(range: HAL_AccelerometerRange);
 }
 extern "C" {
-    pub fn HAL_GetAccelerometerX() -> f64;
+    pub fn HAL_GetAccelerometerX() -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetAccelerometerY() -> f64;
+    pub fn HAL_GetAccelerometerY() -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetAccelerometerZ() -> f64;
+    pub fn HAL_GetAccelerometerZ() -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_IsAccumulatorChannel(analogPortHandle: HAL_AnalogInputHandle,
@@ -147,14 +147,15 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_SetAnalogGyroParameters(handle: HAL_GyroHandle,
-                                       voltsPerDegreePerSecond: f64,
-                                       offset: f64, center: i32,
-                                       status: *mut i32);
+                                       voltsPerDegreePerSecond:
+                                           ::std::os::raw::c_double,
+                                       offset: ::std::os::raw::c_double,
+                                       center: i32, status: *mut i32);
 }
 extern "C" {
     pub fn HAL_SetAnalogGyroVoltsPerDegreePerSecond(handle: HAL_GyroHandle,
                                                     voltsPerDegreePerSecond:
-                                                        f64,
+                                                        ::std::os::raw::c_double,
                                                     status: *mut i32);
 }
 extern "C" {
@@ -164,20 +165,21 @@ extern "C" {
     pub fn HAL_CalibrateAnalogGyro(handle: HAL_GyroHandle, status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetAnalogGyroDeadband(handle: HAL_GyroHandle, volts: f64,
+    pub fn HAL_SetAnalogGyroDeadband(handle: HAL_GyroHandle,
+                                     volts: ::std::os::raw::c_double,
                                      status: *mut i32);
 }
 extern "C" {
     pub fn HAL_GetAnalogGyroAngle(handle: HAL_GyroHandle, status: *mut i32)
-     -> f64;
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetAnalogGyroRate(handle: HAL_GyroHandle, status: *mut i32)
-     -> f64;
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetAnalogGyroOffset(handle: HAL_GyroHandle, status: *mut i32)
-     -> f64;
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetAnalogGyroCenter(handle: HAL_GyroHandle, status: *mut i32)
@@ -198,10 +200,12 @@ extern "C" {
     pub fn HAL_CheckAnalogInputChannel(channel: i32) -> HAL_Bool;
 }
 extern "C" {
-    pub fn HAL_SetAnalogSampleRate(samplesPerSecond: f64, status: *mut i32);
+    pub fn HAL_SetAnalogSampleRate(samplesPerSecond: ::std::os::raw::c_double,
+                                   status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_GetAnalogSampleRate(status: *mut i32) -> f64;
+    pub fn HAL_GetAnalogSampleRate(status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_SetAnalogAverageBits(analogPortHandle: HAL_AnalogInputHandle,
@@ -231,16 +235,18 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_GetAnalogVoltsToValue(analogPortHandle: HAL_AnalogInputHandle,
-                                     voltage: f64, status: *mut i32) -> i32;
+                                     voltage: ::std::os::raw::c_double,
+                                     status: *mut i32) -> i32;
 }
 extern "C" {
     pub fn HAL_GetAnalogVoltage(analogPortHandle: HAL_AnalogInputHandle,
-                                status: *mut i32) -> f64;
+                                status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetAnalogAverageVoltage(analogPortHandle:
                                            HAL_AnalogInputHandle,
-                                       status: *mut i32) -> f64;
+                                       status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetAnalogLSBWeight(analogPortHandle: HAL_AnalogInputHandle,
@@ -261,11 +267,12 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_SetAnalogOutput(analogOutputHandle: HAL_AnalogOutputHandle,
-                               voltage: f64, status: *mut i32);
+                               voltage: ::std::os::raw::c_double,
+                               status: *mut i32);
 }
 extern "C" {
     pub fn HAL_GetAnalogOutput(analogOutputHandle: HAL_AnalogOutputHandle,
-                               status: *mut i32) -> f64;
+                               status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_CheckAnalogOutputChannel(channel: i32) -> HAL_Bool;
@@ -297,7 +304,8 @@ extern "C" {
 extern "C" {
     pub fn HAL_SetAnalogTriggerLimitsVoltage(analogTriggerHandle:
                                                  HAL_AnalogTriggerHandle,
-                                             lower: f64, upper: f64,
+                                             lower: ::std::os::raw::c_double,
+                                             upper: ::std::os::raw::c_double,
                                              status: *mut i32);
 }
 extern "C" {
@@ -357,7 +365,8 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_GetCompressorCurrent(compressorHandle: HAL_CompressorHandle,
-                                    status: *mut i32) -> f64;
+                                    status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetCompressorCurrentTooHighFault(compressorHandle:
@@ -462,7 +471,8 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_SetCounterPulseLengthMode(counterHandle: HAL_CounterHandle,
-                                         threshold: f64, status: *mut i32);
+                                         threshold: ::std::os::raw::c_double,
+                                         status: *mut i32);
 }
 extern "C" {
     pub fn HAL_GetCounterSamplesToAverage(counterHandle: HAL_CounterHandle,
@@ -483,11 +493,12 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_GetCounterPeriod(counterHandle: HAL_CounterHandle,
-                                status: *mut i32) -> f64;
+                                status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_SetCounterMaxPeriod(counterHandle: HAL_CounterHandle,
-                                   maxPeriod: f64, status: *mut i32);
+                                   maxPeriod: ::std::os::raw::c_double,
+                                   status: *mut i32);
 }
 extern "C" {
     pub fn HAL_SetCounterUpdateWhenEmpty(counterHandle: HAL_CounterHandle,
@@ -524,11 +535,13 @@ extern "C" {
                               status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetDigitalPWMRate(rate: f64, status: *mut i32);
+    pub fn HAL_SetDigitalPWMRate(rate: ::std::os::raw::c_double,
+                                 status: *mut i32);
 }
 extern "C" {
     pub fn HAL_SetDigitalPWMDutyCycle(pwmGenerator: HAL_DigitalPWMHandle,
-                                      dutyCycle: f64, status: *mut i32);
+                                      dutyCycle: ::std::os::raw::c_double,
+                                      status: *mut i32);
 }
 extern "C" {
     pub fn HAL_SetDigitalPWMOutputChannel(pwmGenerator: HAL_DigitalPWMHandle,
@@ -547,8 +560,8 @@ extern "C" {
                                status: *mut i32) -> HAL_Bool;
 }
 extern "C" {
-    pub fn HAL_Pulse(dioPortHandle: HAL_DigitalHandle, pulseLength: f64,
-                     status: *mut i32);
+    pub fn HAL_Pulse(dioPortHandle: HAL_DigitalHandle,
+                     pulseLength: ::std::os::raw::c_double, status: *mut i32);
 }
 extern "C" {
     pub fn HAL_IsPulsing(dioPortHandle: HAL_DigitalHandle, status: *mut i32)
@@ -576,102 +589,17 @@ extern "C" {
 #[derive(Debug, Copy)]
 pub struct HAL_ControlWord {
     pub _bitfield_1: u32,
+    pub __bindgen_align: [u32; 0usize],
 }
 #[test]
 fn bindgen_test_layout_HAL_ControlWord() {
-    assert_eq!(::std::mem::size_of::<HAL_ControlWord>() , 4usize);
-    assert_eq!(::std::mem::align_of::<HAL_ControlWord>() , 4usize);
+    assert_eq!(::std::mem::size_of::<HAL_ControlWord>() , 4usize , concat ! (
+               "Size of: " , stringify ! ( HAL_ControlWord ) ));
+    assert_eq! (::std::mem::align_of::<HAL_ControlWord>() , 4usize , concat !
+                ( "Alignment of " , stringify ! ( HAL_ControlWord ) ));
 }
 impl Clone for HAL_ControlWord {
     fn clone(&self) -> Self { *self }
-}
-impl HAL_ControlWord {
-    #[inline]
-    pub fn enabled(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (1usize as u32)) >>
-                                       0u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_enabled(&mut self, val: u32) {
-        self._bitfield_1 &= !(1usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 0u32) & (1usize as u32);
-    }
-    #[inline]
-    pub fn autonomous(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (2usize as u32)) >>
-                                       1u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_autonomous(&mut self, val: u32) {
-        self._bitfield_1 &= !(2usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 1u32) & (2usize as u32);
-    }
-    #[inline]
-    pub fn test(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (4usize as u32)) >>
-                                       2u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_test(&mut self, val: u32) {
-        self._bitfield_1 &= !(4usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 2u32) & (4usize as u32);
-    }
-    #[inline]
-    pub fn eStop(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (8usize as u32)) >>
-                                       3u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_eStop(&mut self, val: u32) {
-        self._bitfield_1 &= !(8usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 3u32) & (8usize as u32);
-    }
-    #[inline]
-    pub fn fmsAttached(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (16usize as u32)) >>
-                                       4u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_fmsAttached(&mut self, val: u32) {
-        self._bitfield_1 &= !(16usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 4u32) & (16usize as u32);
-    }
-    #[inline]
-    pub fn dsAttached(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (32usize as u32)) >>
-                                       5u32) as u32)
-        }
-    }
-    #[inline]
-    pub fn set_dsAttached(&mut self, val: u32) {
-        self._bitfield_1 &= !(32usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 5u32) & (32usize as u32);
-    }
-    #[inline]
-    pub fn control_reserved(&self) -> u32 {
-        unsafe {
-            ::std::mem::transmute(((self._bitfield_1 &
-                                        (4294967232usize as u32)) >> 6u32) as
-                                      u32)
-        }
-    }
-    #[inline]
-    pub fn set_control_reserved(&mut self, val: u32) {
-        self._bitfield_1 &= !(4294967232usize as u32);
-        self._bitfield_1 |=
-            ((val as u32 as u32) << 6u32) & (4294967232usize as u32);
-    }
 }
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -687,12 +615,24 @@ pub enum HAL_AllianceStationID {
 #[derive(Debug, Copy)]
 pub struct HAL_JoystickAxes {
     pub count: i16,
-    pub axes: [f32; 12usize],
+    pub axes: [::std::os::raw::c_float; 12usize],
 }
 #[test]
 fn bindgen_test_layout_HAL_JoystickAxes() {
-    assert_eq!(::std::mem::size_of::<HAL_JoystickAxes>() , 52usize);
-    assert_eq!(::std::mem::align_of::<HAL_JoystickAxes>() , 4usize);
+    assert_eq!(::std::mem::size_of::<HAL_JoystickAxes>() , 52usize , concat !
+               ( "Size of: " , stringify ! ( HAL_JoystickAxes ) ));
+    assert_eq! (::std::mem::align_of::<HAL_JoystickAxes>() , 4usize , concat !
+                ( "Alignment of " , stringify ! ( HAL_JoystickAxes ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickAxes ) ) . count as * const _
+                as usize } , 0usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickAxes ) ,
+                "::" , stringify ! ( count ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickAxes ) ) . axes as * const _
+                as usize } , 4usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickAxes ) ,
+                "::" , stringify ! ( axes ) ));
 }
 impl Clone for HAL_JoystickAxes {
     fn clone(&self) -> Self { *self }
@@ -705,8 +645,20 @@ pub struct HAL_JoystickPOVs {
 }
 #[test]
 fn bindgen_test_layout_HAL_JoystickPOVs() {
-    assert_eq!(::std::mem::size_of::<HAL_JoystickPOVs>() , 26usize);
-    assert_eq!(::std::mem::align_of::<HAL_JoystickPOVs>() , 2usize);
+    assert_eq!(::std::mem::size_of::<HAL_JoystickPOVs>() , 26usize , concat !
+               ( "Size of: " , stringify ! ( HAL_JoystickPOVs ) ));
+    assert_eq! (::std::mem::align_of::<HAL_JoystickPOVs>() , 2usize , concat !
+                ( "Alignment of " , stringify ! ( HAL_JoystickPOVs ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickPOVs ) ) . count as * const _
+                as usize } , 0usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickPOVs ) ,
+                "::" , stringify ! ( count ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickPOVs ) ) . povs as * const _
+                as usize } , 2usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickPOVs ) ,
+                "::" , stringify ! ( povs ) ));
 }
 impl Clone for HAL_JoystickPOVs {
     fn clone(&self) -> Self { *self }
@@ -719,8 +671,21 @@ pub struct HAL_JoystickButtons {
 }
 #[test]
 fn bindgen_test_layout_HAL_JoystickButtons() {
-    assert_eq!(::std::mem::size_of::<HAL_JoystickButtons>() , 8usize);
-    assert_eq!(::std::mem::align_of::<HAL_JoystickButtons>() , 4usize);
+    assert_eq!(::std::mem::size_of::<HAL_JoystickButtons>() , 8usize , concat
+               ! ( "Size of: " , stringify ! ( HAL_JoystickButtons ) ));
+    assert_eq! (::std::mem::align_of::<HAL_JoystickButtons>() , 4usize ,
+                concat ! (
+                "Alignment of " , stringify ! ( HAL_JoystickButtons ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickButtons ) ) . buttons as *
+                const _ as usize } , 0usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickButtons ) ,
+                "::" , stringify ! ( buttons ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickButtons ) ) . count as *
+                const _ as usize } , 4usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickButtons ) ,
+                "::" , stringify ! ( count ) ));
 }
 impl Clone for HAL_JoystickButtons {
     fn clone(&self) -> Self { *self }
@@ -737,8 +702,47 @@ pub struct HAL_JoystickDescriptor {
 }
 #[test]
 fn bindgen_test_layout_HAL_JoystickDescriptor() {
-    assert_eq!(::std::mem::size_of::<HAL_JoystickDescriptor>() , 273usize);
-    assert_eq!(::std::mem::align_of::<HAL_JoystickDescriptor>() , 1usize);
+    assert_eq!(::std::mem::size_of::<HAL_JoystickDescriptor>() , 273usize ,
+               concat ! ( "Size of: " , stringify ! ( HAL_JoystickDescriptor )
+               ));
+    assert_eq! (::std::mem::align_of::<HAL_JoystickDescriptor>() , 1usize ,
+                concat ! (
+                "Alignment of " , stringify ! ( HAL_JoystickDescriptor ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . isXbox as *
+                const _ as usize } , 0usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( isXbox ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . type_ as *
+                const _ as usize } , 1usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( type_ ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . name as *
+                const _ as usize } , 2usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( name ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . axisCount as
+                * const _ as usize } , 258usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( axisCount ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . axisTypes as
+                * const _ as usize } , 259usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( axisTypes ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . buttonCount
+                as * const _ as usize } , 271usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( buttonCount ) ));
+    assert_eq! (unsafe {
+                & ( * ( 0 as * const HAL_JoystickDescriptor ) ) . povCount as
+                * const _ as usize } , 272usize , concat ! (
+                "Alignment of field: " , stringify ! ( HAL_JoystickDescriptor
+                ) , "::" , stringify ! ( povCount ) ));
 }
 extern "C" {
     pub fn HAL_SetErrorData(errors: *const ::std::os::raw::c_char,
@@ -793,7 +797,7 @@ extern "C" {
                                   leftRumble: i32, rightRumble: i32) -> i32;
 }
 extern "C" {
-    pub fn HAL_GetMatchTime(status: *mut i32) -> f64;
+    pub fn HAL_GetMatchTime(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_WaitForDSData();
@@ -849,8 +853,9 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_WaitForInterrupt(interruptHandle: HAL_InterruptHandle,
-                                timeout: f64, ignorePrevious: HAL_Bool,
-                                status: *mut i32) -> i64;
+                                timeout: ::std::os::raw::c_double,
+                                ignorePrevious: HAL_Bool, status: *mut i32)
+     -> i64;
 }
 extern "C" {
     pub fn HAL_EnableInterrupts(interruptHandle: HAL_InterruptHandle,
@@ -863,12 +868,14 @@ extern "C" {
 extern "C" {
     pub fn HAL_ReadInterruptRisingTimestamp(interruptHandle:
                                                 HAL_InterruptHandle,
-                                            status: *mut i32) -> f64;
+                                            status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_ReadInterruptFallingTimestamp(interruptHandle:
                                                  HAL_InterruptHandle,
-                                             status: *mut i32) -> f64;
+                                             status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_RequestInterrupts(interruptHandle: HAL_InterruptHandle,
@@ -939,23 +946,29 @@ extern "C" {
     pub fn HAL_CheckPDPModule(module: i32) -> HAL_Bool;
 }
 extern "C" {
-    pub fn HAL_GetPDPTemperature(module: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetPDPTemperature(module: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetPDPVoltage(module: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetPDPVoltage(module: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetPDPChannelCurrent(module: i32, channel: i32,
-                                    status: *mut i32) -> f64;
+                                    status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetPDPTotalCurrent(module: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetPDPTotalCurrent(module: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetPDPTotalPower(module: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetPDPTotalPower(module: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetPDPTotalEnergy(module: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetPDPTotalEnergy(module: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_ResetPDPTotalEnergy(module: i32, status: *mut i32);
@@ -975,9 +988,12 @@ extern "C" {
     pub fn HAL_CheckPWMChannel(channel: i32) -> HAL_Bool;
 }
 extern "C" {
-    pub fn HAL_SetPWMConfig(pwmPortHandle: HAL_DigitalHandle, maxPwm: f64,
-                            deadbandMaxPwm: f64, centerPwm: f64,
-                            deadbandMinPwm: f64, minPwm: f64,
+    pub fn HAL_SetPWMConfig(pwmPortHandle: HAL_DigitalHandle,
+                            maxPwm: ::std::os::raw::c_double,
+                            deadbandMaxPwm: ::std::os::raw::c_double,
+                            centerPwm: ::std::os::raw::c_double,
+                            deadbandMinPwm: ::std::os::raw::c_double,
+                            minPwm: ::std::os::raw::c_double,
                             status: *mut i32);
 }
 extern "C" {
@@ -1006,11 +1022,12 @@ extern "C" {
                          status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetPWMSpeed(pwmPortHandle: HAL_DigitalHandle, speed: f64,
-                           status: *mut i32);
+    pub fn HAL_SetPWMSpeed(pwmPortHandle: HAL_DigitalHandle,
+                           speed: ::std::os::raw::c_double, status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetPWMPosition(pwmPortHandle: HAL_DigitalHandle, position: f64,
+    pub fn HAL_SetPWMPosition(pwmPortHandle: HAL_DigitalHandle,
+                              position: ::std::os::raw::c_double,
                               status: *mut i32);
 }
 extern "C" {
@@ -1023,11 +1040,11 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_GetPWMSpeed(pwmPortHandle: HAL_DigitalHandle, status: *mut i32)
-     -> f64;
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetPWMPosition(pwmPortHandle: HAL_DigitalHandle,
-                              status: *mut i32) -> f64;
+                              status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_LatchPWMZero(pwmPortHandle: HAL_DigitalHandle,
@@ -1095,16 +1112,16 @@ extern "C" {
     pub fn HAL_GetNumPDPChannels() -> i32;
 }
 extern "C" {
-    pub fn HAL_GetVinVoltage(status: *mut i32) -> f64;
+    pub fn HAL_GetVinVoltage(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetVinCurrent(status: *mut i32) -> f64;
+    pub fn HAL_GetVinCurrent(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetUserVoltage6V(status: *mut i32) -> f64;
+    pub fn HAL_GetUserVoltage6V(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetUserCurrent6V(status: *mut i32) -> f64;
+    pub fn HAL_GetUserCurrent6V(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetUserActive6V(status: *mut i32) -> HAL_Bool;
@@ -1113,10 +1130,10 @@ extern "C" {
     pub fn HAL_GetUserCurrentFaults6V(status: *mut i32) -> i32;
 }
 extern "C" {
-    pub fn HAL_GetUserVoltage5V(status: *mut i32) -> f64;
+    pub fn HAL_GetUserVoltage5V(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetUserCurrent5V(status: *mut i32) -> f64;
+    pub fn HAL_GetUserCurrent5V(status: *mut i32) -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetUserActive5V(status: *mut i32) -> HAL_Bool;
@@ -1125,10 +1142,12 @@ extern "C" {
     pub fn HAL_GetUserCurrentFaults5V(status: *mut i32) -> i32;
 }
 extern "C" {
-    pub fn HAL_GetUserVoltage3V3(status: *mut i32) -> f64;
+    pub fn HAL_GetUserVoltage3V3(status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn HAL_GetUserCurrent3V3(status: *mut i32) -> f64;
+    pub fn HAL_GetUserCurrent3V3(status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetUserActive3V3(status: *mut i32) -> HAL_Bool;
@@ -1220,7 +1239,8 @@ extern "C" {
     pub fn HAL_GetSPIAccumulatorCount(port: i32, status: *mut i32) -> i64;
 }
 extern "C" {
-    pub fn HAL_GetSPIAccumulatorAverage(port: i32, status: *mut i32) -> f64;
+    pub fn HAL_GetSPIAccumulatorAverage(port: i32, status: *mut i32)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_GetSPIAccumulatorOutput(port: i32, value: *mut i64,
@@ -1262,7 +1282,8 @@ extern "C" {
                                     status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetSerialTimeout(port: HAL_SerialPort, timeout: f64,
+    pub fn HAL_SetSerialTimeout(port: HAL_SerialPort,
+                                timeout: ::std::os::raw::c_double,
                                 status: *mut i32);
 }
 extern "C" {
@@ -1402,10 +1423,12 @@ extern "C" {
     pub fn canTxPackInt32(arbID: u32, offset: u8, value: u32);
 }
 extern "C" {
-    pub fn canTxPackFXP16(arbID: u32, offset: u8, value: f64);
+    pub fn canTxPackFXP16(arbID: u32, offset: u8,
+                          value: ::std::os::raw::c_double);
 }
 extern "C" {
-    pub fn canTxPackFXP32(arbID: u32, offset: u8, value: f64);
+    pub fn canTxPackFXP32(arbID: u32, offset: u8,
+                          value: ::std::os::raw::c_double);
 }
 extern "C" {
     pub fn canTxUnpackInt8(arbID: u32, offset: u8) -> u8;
@@ -1417,10 +1440,12 @@ extern "C" {
     pub fn canTxUnpackInt16(arbID: u32, offset: u8) -> u16;
 }
 extern "C" {
-    pub fn canTxUnpackFXP16(arbID: u32, offset: u8) -> f64;
+    pub fn canTxUnpackFXP16(arbID: u32, offset: u8)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn canTxUnpackFXP32(arbID: u32, offset: u8) -> f64;
+    pub fn canTxUnpackFXP32(arbID: u32, offset: u8)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn canRxReceive(arbID: u32) -> bool;
@@ -1435,10 +1460,12 @@ extern "C" {
     pub fn canRxUnpackInt32(arbID: u32, offset: u8) -> u32;
 }
 extern "C" {
-    pub fn canRxUnpackFXP16(arbID: u32, offset: u8) -> f64;
+    pub fn canRxUnpackFXP16(arbID: u32, offset: u8)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
-    pub fn canRxUnpackFXP32(arbID: u32, offset: u8) -> f64;
+    pub fn canRxUnpackFXP32(arbID: u32, offset: u8)
+     -> ::std::os::raw::c_double;
 }
 extern "C" {
     pub fn HAL_InitializeOSSerialPort(port: HAL_SerialPort, status: *mut i32);
@@ -1468,7 +1495,8 @@ extern "C" {
                                       status: *mut i32);
 }
 extern "C" {
-    pub fn HAL_SetOSSerialTimeout(port: HAL_SerialPort, timeout: f64,
+    pub fn HAL_SetOSSerialTimeout(port: HAL_SerialPort,
+                                  timeout: ::std::os::raw::c_double,
                                   status: *mut i32);
 }
 extern "C" {

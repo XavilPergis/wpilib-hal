@@ -9,18 +9,22 @@ use std::ops::Index;
 
 use time::Duration;
 
+#[allow(missing_docs)] pub type RawControlWord = HAL_ControlWord;
+#[allow(missing_docs)] pub type RawJoystickAxes = HAL_JoystickAxes;
+#[allow(missing_docs)] pub type RawJoystickPovs = HAL_JoystickPOVs;
+#[allow(missing_docs)] pub type RawJoystickButtons = HAL_JoystickButtons;
+#[allow(missing_docs)] pub type RawJoystickDescriptor = HAL_JoystickDescriptor;
+
 /// The maximum amount of axes that a controller can have. Realistically, this
 /// is 3 or 4.
 pub const MAX_JOYSTICK_AXES: usize = 12;
 /// The maximum amount of POVs that a controller can have. POVs are the little
-/// D-pad like things
-/// on the top of the joystick.
+/// D-pad like things on the top of the joystick.
 pub const MAX_JOYSTICK_POVS: usize = 12;
 
 // TODO: More insightful comments
 /// What modes the driver station is in. Only one of `enabled`, `autonomous`,
-/// `test`, and `stopped`
-/// should be on at a time.
+/// `test`, and `stopped` should be on at a time.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ControlWord {
     /// Whether the driver station is enabled
@@ -52,16 +56,27 @@ impl ControlWord {
     }
 }
 
-impl From<HAL_ControlWord> for ControlWord {
+const ENABLED_OFFSET:      i32 = 0;
+const AUTONOMOUS_OFFSET:   i32 = 1;
+const TEST_OFFSET:         i32 = 2;
+const STOPPED_OFFSET:      i32 = 3;
+const FMS_ATTACHED_OFFSET: i32 = 4;
+const DS_ATTACHED_OFFSET:  i32 = 5;
+
+fn extract_field(word: RawControlWord, offset: i32) -> u32 {
+    (word._bitfield_1 & (2 << offset - 1)) >> offset
+}
+
+impl From<RawControlWord> for ControlWord {
     #[inline]
-    fn from(raw: HAL_ControlWord) -> ControlWord {
+    fn from(raw: RawControlWord) -> ControlWord {
         ControlWord {
-            enabled: raw.enabled() != 0,
-            autonomous: raw.autonomous() != 0,
-            test: raw.test() != 0,
-            stopped: raw.eStop() != 0,
-            fms_attached: raw.fmsAttached() != 0,
-            ds_attached: raw.dsAttached() != 0,
+            enabled:      extract_field(raw, ENABLED_OFFSET) != 0,
+            autonomous:   extract_field(raw, AUTONOMOUS_OFFSET) != 0,
+            test:         extract_field(raw, TEST_OFFSET) != 0,
+            stopped:      extract_field(raw, STOPPED_OFFSET) != 0,
+            fms_attached: extract_field(raw, FMS_ATTACHED_OFFSET) != 0,
+            ds_attached:  extract_field(raw, DS_ATTACHED_OFFSET) != 0,
         }
     }
 }
@@ -86,8 +101,8 @@ impl Index<usize> for JoystickAxes {
     }
 }
 
-impl From<HAL_JoystickAxes> for JoystickAxes {
-    fn from(raw_axes: HAL_JoystickAxes) -> JoystickAxes {
+impl From<RawJoystickAxes> for JoystickAxes {
+    fn from(raw_axes: RawJoystickAxes) -> JoystickAxes {
         JoystickAxes {
             axes: raw_axes.axes,
             count: raw_axes.count,
@@ -110,8 +125,8 @@ impl Index<usize> for JoystickPovs {
     }
 }
 
-impl From<HAL_JoystickPOVs> for JoystickPovs {
-    fn from(raw_povs: HAL_JoystickPOVs) -> JoystickPovs {
+impl From<RawJoystickPovs> for JoystickPovs {
+    fn from(raw_povs: RawJoystickPovs) -> JoystickPovs {
         JoystickPovs {
             povs: raw_povs.povs,
             count: raw_povs.count,
@@ -136,8 +151,8 @@ impl Index<usize> for JoystickButtons {
     }
 }
 
-impl From<HAL_JoystickButtons> for JoystickButtons {
-    fn from(raw_buttons: HAL_JoystickButtons) -> JoystickButtons {
+impl From<RawJoystickButtons> for JoystickButtons {
+    fn from(raw_buttons: RawJoystickButtons) -> JoystickButtons {
         let mut buttons = JoystickButtons {
             buttons_down: [false; 32],
             count: 0,
@@ -165,8 +180,8 @@ pub struct JoystickDescriptor {
     pov_count: u8,
 }
 
-impl From<HAL_JoystickDescriptor> for JoystickDescriptor {
-    fn from(raw_descriptor: HAL_JoystickDescriptor) -> JoystickDescriptor {
+impl From<RawJoystickDescriptor> for JoystickDescriptor {
+    fn from(raw_descriptor: RawJoystickDescriptor) -> JoystickDescriptor {
         JoystickDescriptor {
             // FIXME: Does this even work?
             name: String::from_utf8_lossy(raw_descriptor.name
@@ -231,13 +246,13 @@ pub enum UserProgramMode {
 
 // TODO: What is this?
 pub fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
-    hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ]
+    unsafe { hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ] }
 }
 
 /// Gets a joystick's descriptor from the driver station
 pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
     let mut descriptor = unsafe { mem::zeroed() };
-    hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut HAL_JoystickDescriptor))?;
+    unsafe { hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut RawJoystickDescriptor))?; }
 
     Ok(JoystickDescriptor::from(descriptor))
 }
@@ -247,7 +262,7 @@ pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescripto
 /// be somewhere in a range of values.
 pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
     let mut raw_axes = unsafe { mem::zeroed() };
-    hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut HAL_JoystickAxes))?;
+    unsafe { hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut RawJoystickAxes))?; }
 
     Ok(JoystickAxes::from(raw_axes))
 }
@@ -255,15 +270,15 @@ pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
 /// Gets the state of all the POVs on the joystick.
 pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
     let mut raw_povs = unsafe { mem::zeroed() };
-    hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut HAL_JoystickPOVs))?;
+    unsafe { hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut RawJoystickPovs))?; }
 
     Ok(JoystickPovs::from(raw_povs))
 }
 
 /// Gets what buttons are pressed on a joystick
 pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
-    let mut raw_buttons: HAL_JoystickButtons = unsafe { mem::zeroed() };
-    hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut HAL_JoystickButtons))?;
+    let mut raw_buttons: RawJoystickButtons = unsafe { mem::zeroed() };
+    unsafe { hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut RawJoystickButtons))?; }
 
     Ok(JoystickButtons::from(raw_buttons))
 }
@@ -297,7 +312,7 @@ pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<Joystic
 // TODO: What is this?
 pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32)
                             -> HalResult<()> {
-    hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble))
+    unsafe { hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble)) }
 }
 
 // TODO: What are we actually observing? This should be called in the main DS
@@ -320,8 +335,8 @@ pub fn initialize_driver_station() {
 /// Gets a control word directly from the driver station. The result should be
 /// cached for ~50ms
 pub fn get_control_word() -> HalResult<ControlWord> {
-    let mut control_word: HAL_ControlWord = unsafe { mem::zeroed() };
-    hal_call!(ret HAL_GetControlWord(&mut control_word as *mut HAL_ControlWord))?;
+    let mut control_word: RawControlWord = unsafe { mem::zeroed() };
+    unsafe { hal_call!(ret HAL_GetControlWord(&mut control_word as *mut RawControlWord))?; }
 
     Ok(ControlWord::from(control_word))
 }
@@ -361,14 +376,14 @@ pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &s
     let call_stack_raw = CString::new(call_stack).map_err(HalError::from)?;
 
     // TODO: Will the pointers be dropped here? I don't *think* so?
-    hal_call!(ret HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,
+    unsafe { hal_call!(ret HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,
     details_raw.as_ptr(), location_raw.as_ptr(), call_stack_raw.as_ptr(),
-    print_message as HAL_Bool))
+    print_message as HAL_Bool)) }
 }
 
 /// Gets where the driver station thinks it is.
 pub fn get_alliance_station() -> HalResult<AllianceStation> {
-    let station_id = hal_call!(ptr HAL_GetAllianceStation())?;
+    let station_id = unsafe { hal_call!(ptr HAL_GetAllianceStation())? };
 
     use raw::HAL_AllianceStationID;
 
@@ -388,7 +403,7 @@ pub fn get_alliance_station() -> HalResult<AllianceStation> {
 /// times or garuntee
 /// that a task completes before the match runs out.
 pub fn get_match_time_approx() -> HalResult<Duration> {
-    let time = hal_call![ ptr HAL_GetMatchTime() ]?;
+    let time = unsafe { hal_call![ ptr HAL_GetMatchTime() ]? };
 
     // TODO: What the hell are the units that are returned!? Probably seconds...
     let time_ns = (time * 1_000_000_000f64) as i64;
