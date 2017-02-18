@@ -9,6 +9,7 @@ lazy_static! {
     static ref HAL_INITIALIZED: Mutex<bool> = Mutex::new(false);
 }
 
+/// Contains typedefs that rename some raw types with proper names
 pub mod handle;
 
 /// Bindings for the on-board accelerometer
@@ -65,7 +66,7 @@ pub mod ports;
 /// Bindings to power information getters
 pub mod power;
 
-/// Bindings to pwms
+/// Bindings to PWMs
 pub mod pwm;
 
 /// Bindings to relays
@@ -83,12 +84,15 @@ pub mod solenoid;
 /// Bindings to SPI (Serial Port Interface)
 pub mod spi;
 
-pub type RawRuntimeType = HAL_RuntimeType;
+#[allow(missing_docs)] pub type RawRuntimeType = HAL_RuntimeType;
 
+/// Which environment the robot code is running on.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum RuntimeType {
+    /// Running in an Athena environment
     Native,
-    Mock,
+    /// Running on a Mock environment
+    Mock
 }
 
 impl From<RawRuntimeType> for RuntimeType {
@@ -102,13 +106,16 @@ impl From<RawRuntimeType> for RuntimeType {
 
 
 // I think this was in HAL/Constants.h?
+/// Gets how many clock ticks occur per microsecond
 pub fn get_system_clock_ticks_per_microsecond() -> i32 {
     unsafe { HAL_GetSystemClockTicksPerMicrosecond() }
 }
 
 pub fn get_error_message(code: i32) -> String {
-    let char_ptr = unsafe { HAL_GetErrorMessage(code) };
-    unsafe { CStr::from_ptr(char_ptr).to_string_lossy().into_owned() }
+    unsafe {
+        let char_ptr = HAL_GetErrorMessage(code);
+        CStr::from_ptr(char_ptr).to_string_lossy().into_owned()
+    }
 }
 
 pub fn get_fpga_version() -> HalResult<i32> {
@@ -131,6 +138,7 @@ pub fn get_system_active() -> HalResult<bool> {
     unsafe { hal_call![ ptr HAL_GetSystemActive() ].map(|n| n != 0) }
 }
 
+/// Gets whether the robot is underpowered. Basically nothing will work if the bot is browned out.
 pub fn get_browned_out() -> HalResult<bool> {
     unsafe { hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0) }
 }
@@ -160,6 +168,8 @@ pub fn hal_initialize(mode: i32) -> i32 {
 }
 
 pub fn hal_is_initialized() -> bool {
+    // Our code will never panic, so we can just unwrap the lock
+    // The value is copied and the lock is dropped before the end of the function
     *HAL_INITIALIZED.lock().unwrap()
 }
 

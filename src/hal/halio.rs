@@ -10,11 +10,38 @@ use ::error::*;
 use serial::SerialPort;
 use spi::SpiPort;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum RobotIoPort {
     Serial(SerialPort),
     Spi(SpiPort),
     /// (port, address)
     I2c(i32, i32)
+}
+
+impl RobotIoPort {
+    pub fn as_serial(&self) -> HalResult<SerialPort> {
+        if let RobotIoPort::Serial(port) = *self {
+            Ok(port)
+        } else {
+            Err(HalError::WrongIoInterface)
+        }
+    }
+
+    pub fn as_spi(&self) -> HalResult<SpiPort> {
+        if let RobotIoPort::Spi(port) = *self {
+            Ok(port)
+        } else {
+            Err(HalError::WrongIoInterface)
+        }
+    }
+
+    pub fn as_i2c(&self) -> HalResult<(i32, i32)> {
+        if let RobotIoPort::I2c(port, addr) = *self {
+            Ok((port, addr))
+        } else {
+            Err(HalError::WrongIoInterface)
+        }
+    }
 }
 
 pub fn io_read<F>(func: F, port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32>

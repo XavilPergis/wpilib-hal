@@ -102,27 +102,15 @@ pub fn get_serial_bytes_received(port: SerialPort) -> HalResult<i32> {
 // TODO: Maybe make this a bit more robust?
 
 pub fn read_serial(port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
-    if let RobotIoPort::Serial(p) = port {
-        unsafe { hal_call![ ptr HAL_ReadSerial(p.into_raw(), buffer.as_mut_ptr() as *mut c_char, count) ] }
-    } else {
-        Err(HalError::WrongIoInterface)
-    }
+    unsafe { hal_call![ ptr HAL_ReadSerial(port.as_serial()?.into_raw(), buffer.as_mut_ptr() as *mut c_char, count) ] }
 }
 
 pub fn write_serial(port: RobotIoPort, buffer: &[u8], count: i32) -> HalResult<i32> {
-    if let RobotIoPort::Serial(p) = port {
-        unsafe { hal_call![ ptr HAL_WriteSerial(p.into_raw(), buffer.as_ptr() as *const c_char, count) ] }
-    } else {
-        Err(HalError::WrongIoInterface)
-    }
+    unsafe { hal_call![ ptr HAL_WriteSerial(port.as_serial()?.into_raw(), buffer.as_ptr() as *const c_char, count) ] }
 }
 
 pub fn flush_serial(port: RobotIoPort) -> HalResult<()> {
-    if let RobotIoPort::Serial(p) = port {
-        unsafe { hal_call![ ptr HAL_FlushSerial(p.into_raw()) ] }
-    } else {
-        Err(HalError::WrongIoInterface)
-    }
+    unsafe { hal_call![ ptr HAL_FlushSerial(port.as_serial()?.into_raw()) ] }
 }
 
 pub fn clear_serial(port: SerialPort) -> HalResult<()> {
