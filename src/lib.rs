@@ -1,14 +1,15 @@
 //! This is a highly experimental crate providing bindings to WPILIB's HAL.
 //! This crate is not affiliated with FIRST, FRC, or National Instruments in
 //! any way
-#![feature(str_escape)]
-#![feature(custom_attribute)]
-#![feature(field_init_shorthand)]
+#![feature(str_escape, custom_attribute, field_init_shorthand)]
 
+// Enable clippy linting
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-#![warn(missing_docs)]
+// Only deny missing docs in release mode
+#![cfg_attr(not(debug_assertions), deny(missing_docs))]
+#![cfg_attr(debug_assertions, allow(missing_docs))]
 #![allow(dead_code)]
 
 #[macro_use]
