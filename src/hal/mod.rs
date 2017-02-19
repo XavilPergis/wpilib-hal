@@ -54,8 +54,8 @@ pub mod i2c;
 pub mod interrupt;
 
 // TODO
-/// What?
-pub mod notifier;
+// What?
+// pub mod notifier;
 
 /// Bindings to the power distribution panel
 pub mod pdp;
