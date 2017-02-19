@@ -4,6 +4,7 @@ extern crate bindgen;
 
 use bindgen::builder;
 use std::slice::SliceConcatExt;
+use std::path::Path;
 
 const CONST_NAMES: [&'static str; 23] = [
     "SAMPLE_RATE_TOO_HIGH",
@@ -32,8 +33,9 @@ const CONST_NAMES: [&'static str; 23] = [
 ];
 
 fn main() {
-    // Configure and generate bindings.
-    let bindings = builder()
+    if !Path::new("src/raw.rs").exists() {
+        // Configure and generate bindings.
+        let bindings = builder()
         // Use the aggregate wrapper
         .header("headers/HAL/halwrapper.h")
         // whitelist HAL and can functions
@@ -46,6 +48,7 @@ fn main() {
         .generate()
         .unwrap();
 
-    // Write the generated bindings to an output file.
-    bindings.write_to_file("src/raw.rs").unwrap();
+        // Write the generated bindings to an output file.
+        bindings.write_to_file("src/raw.rs").unwrap();
+    }
 }
