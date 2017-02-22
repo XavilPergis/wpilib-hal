@@ -12,8 +12,7 @@ pub fn clean_interrupts(handle: InterruptHandle) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_CleanInterrupts(handle) ] }
 }
 
-pub fn wait_for_interrupt(handle: InterruptHandle, timeout: f64, ignore_previous: bool)
-                          -> HalResult<i64> {
+pub fn wait_for_interrupt(handle: InterruptHandle, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
     unsafe { hal_call![ ptr HAL_WaitForInterrupt(handle, timeout, ignore_previous as HAL_Bool) ] }
 }
 
@@ -42,6 +41,8 @@ unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closu
     (*opt_closure).take().unwrap()(interrupt_asserted_mask as u32);
 }
 
+/// Attach a handler that is activated when the handle recieves an interrupt
+///
 /// ## Example
 /// ```rust,no_run
 /// interrupt::attach_interrupt_handler(5, |mask| {
@@ -54,15 +55,11 @@ pub fn attach_interrupt_handler<F>(handle: InterruptHandle, handler: F) -> HalRe
 }
 
 // ?TODO
-pub fn attach_interrupt_handler_threaded<F>(handle: InterruptHandle, handler: F) -> HalResult<()>
-    where F: Fn(u32)
-{
+pub fn attach_interrupt_handler_threaded<F>(handle: InterruptHandle, handler: F) -> HalResult<()> where F: Fn(u32) {
     let extern_handler = &handler as *const _ as *mut c_void;
     unsafe { hal_call![ ptr HAL_AttachInterruptHandlerThreaded(handle, Some(interrupt_handler_cb::<F>), extern_handler) ] }
 }
 
-pub fn set_interrupt_up_source_edge(handle: InterruptHandle, rising_edge: bool,
-                                    falling_edge: bool)
-                                    -> HalResult<()> {
+pub fn set_interrupt_up_source_edge(handle: InterruptHandle, rising_edge: bool, falling_edge: bool) -> HalResult<()> {
     unsafe { hal_call![ ptr HAL_SetInterruptUpSourceEdge(handle, rising_edge as HAL_Bool, falling_edge as HAL_Bool) ] }
 }

@@ -3,10 +3,13 @@
 //! any way
 #![feature(str_escape, custom_attribute)]
 
+// Enable clippy linting
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-#![warn(missing_docs)]
+// Only deny missing docs in release mode
+#![cfg_attr(not(debug_assertions), deny(missing_docs))]
+#![cfg_attr(debug_assertions, allow(missing_docs))]
 #![allow(dead_code)]
 
 #[macro_use]

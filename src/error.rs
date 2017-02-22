@@ -41,12 +41,12 @@ pub enum FfiError {
     SampleRateTooHigh,
     VoltageOutOfRange,
     LoopTimingError,
-    SpiWriteNoMosi, // TODO: What?
-    SpiReadNoMiso,
+    SpiWriteNoMosi, // MOSI: Master Out Slave In
+    SpiReadNoMiso, // Master In Slave Out
     SpiReadNoData,
     IncompatibleState,
     NoAvailableResources,
-    NullParameter, // Is this really needed? :p
+    NullParameter,
     AnalogTriggerLimitOrderError,
     AnalogTriggerPuseOutputError,
     ParameterOutOfRange,
@@ -67,10 +67,9 @@ pub enum FfiError {
 }
 
 macro_rules! arr_to_str {
-    ($val:ident) => {{
-        use std::str;
-        str::from_utf8(&$crate::raw::$val[0..$val.len()-1]).unwrap().to_string()
-    }};
+    ($val:ident) => {
+        ::std::str::from_utf8(&$crate::raw::$val[0..$val.len()-1]).unwrap().to_string()
+    };
 }
 impl fmt::Display for FfiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -96,8 +95,8 @@ impl fmt::Display for FfiError {
             FfiError::SerialPortNotFound => arr_to_str!(HAL_SERIAL_PORT_NOT_FOUND_MESSAGE),
             FfiError::SerialPortNotOpen => arr_to_str!(HAL_SERIAL_PORT_OPEN_ERROR_MESSAGE),
             FfiError::SerialPortError => arr_to_str!(HAL_SERIAL_PORT_ERROR_MESSAGE),
-            FfiError::ThreadPriorityError => "?".into(),
-            FfiError::ThreadPriorityRangeError => "?".into(),
+            FfiError::ThreadPriorityError => "{ThreadPriorityError}".into(),
+            FfiError::ThreadPriorityRangeError => "{ThreadPriorityRangeError}".into(),
 
             /// Some other status code that doesn't have an associated variant
             FfiError::Unknown(e) => format!("Unknown error: {}", e),
@@ -162,44 +161,43 @@ impl Error for HalError {
 
 impl From<i32> for HalError {
     fn from(code: i32) -> HalError {
-        use self::HalError::Hal;
         use self::FfiError::*;
 
         // Yes, yes, it's messy. But ***HALF OF THE CONSTANTS ARE DIFFERENT TYPES***
-        if code >= 0 {
+        HalError::Hal(if code >= 0 {
             match code as u32 {
-                SAMPLE_RATE_TOO_HIGH => Hal(SampleRateTooHigh),
-                VOLTAGE_OUT_OF_RANGE => Hal(VoltageOutOfRange),
-                LOOP_TIMING_ERROR => Hal(LoopTimingError),
-                SPI_WRITE_NO_MOSI => Hal(SpiWriteNoMosi),
-                SPI_READ_NO_MISO => Hal(SpiReadNoMiso),
-                SPI_READ_NO_DATA => Hal(SpiReadNoData),
-                INCOMPATIBLE_STATE => Hal(IncompatibleState),
+                SAMPLE_RATE_TOO_HIGH => SampleRateTooHigh,
+                VOLTAGE_OUT_OF_RANGE => VoltageOutOfRange,
+                LOOP_TIMING_ERROR => LoopTimingError,
+                SPI_WRITE_NO_MOSI => SpiWriteNoMosi,
+                SPI_READ_NO_MISO => SpiReadNoMiso,
+                SPI_READ_NO_DATA => SpiReadNoData,
+                INCOMPATIBLE_STATE => IncompatibleState,
 
-                k => Hal(Unknown(k as i32)),
+                k => Unknown(k as i32),
             }
         } else {
             match code {
-                NO_AVAILABLE_RESOURCES => Hal(NoAvailableResources),
-                NULL_PARAMETER => Hal(NullParameter),
-                ANALOG_TRIGGER_LIMIT_ORDER_ERROR => Hal(AnalogTriggerLimitOrderError),
-                ANALOG_TRIGGER_PULSE_OUTPUT_ERROR => Hal(AnalogTriggerPuseOutputError),
-                PARAMETER_OUT_OF_RANGE => Hal(ParameterOutOfRange),
-                RESOURCE_IS_ALLOCATED => Hal(ResourceIsAllocated),
-                RESOURCE_OUT_OF_RANGE => Hal(ResourceOutOfRange),
-                HAL_INVALID_ACCUMULATOR_CHANNEL => Hal(InvalidAccumulatorChannel),
-                HAL_COUNTER_NOT_SUPPORTED => Hal(CounterNotSupported),
-                HAL_PWM_SCALE_ERROR => Hal(PwmScaleError),
-                HAL_HANDLE_ERROR => Hal(HandleError),
-                HAL_SERIAL_PORT_NOT_FOUND => Hal(SerialPortNotFound),
-                HAL_SERIAL_PORT_OPEN_ERROR => Hal(SerialPortNotOpen),
-                HAL_SERIAL_PORT_ERROR => Hal(SerialPortError),
-                HAL_THREAD_PRIORITY_ERROR => Hal(ThreadPriorityError),
-                HAL_THREAD_PRIORITY_RANGE_ERROR => Hal(ThreadPriorityRangeError),
+                NO_AVAILABLE_RESOURCES => NoAvailableResources,
+                NULL_PARAMETER => NullParameter,
+                ANALOG_TRIGGER_LIMIT_ORDER_ERROR => AnalogTriggerLimitOrderError,
+                ANALOG_TRIGGER_PULSE_OUTPUT_ERROR => AnalogTriggerPuseOutputError,
+                PARAMETER_OUT_OF_RANGE => ParameterOutOfRange,
+                RESOURCE_IS_ALLOCATED => ResourceIsAllocated,
+                RESOURCE_OUT_OF_RANGE => ResourceOutOfRange,
+                HAL_INVALID_ACCUMULATOR_CHANNEL => InvalidAccumulatorChannel,
+                HAL_COUNTER_NOT_SUPPORTED => CounterNotSupported,
+                HAL_PWM_SCALE_ERROR => PwmScaleError,
+                HAL_HANDLE_ERROR => HandleError,
+                HAL_SERIAL_PORT_NOT_FOUND => SerialPortNotFound,
+                HAL_SERIAL_PORT_OPEN_ERROR => SerialPortNotOpen,
+                HAL_SERIAL_PORT_ERROR => SerialPortError,
+                HAL_THREAD_PRIORITY_ERROR => ThreadPriorityError,
+                HAL_THREAD_PRIORITY_RANGE_ERROR => ThreadPriorityRangeError,
 
-                k => Hal(Unknown(k)),
+                k => Unknown(k),
             }
-        }
+        })
     }
 }
 
