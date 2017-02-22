@@ -35,7 +35,7 @@ fn main() {
     // Configure and generate bindings.
     let bindings = builder()
         // Use the aggregate wrapper
-        .header("headers/HAL/halwrapper.h")
+        .header("headers/halwrapper.h")
         // whitelist HAL and can functions
         .whitelisted_function("HAL_.*|can.*")
         // Whitelist all the constants we need

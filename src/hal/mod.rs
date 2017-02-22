@@ -46,6 +46,8 @@ pub mod dio;
 /// Bindings to the driver station
 pub mod driverstation;
 
+pub mod encoder;
+
 /// Bindings to i2c
 pub mod i2c;
 

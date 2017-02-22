@@ -14,3 +14,4 @@ pub type InterruptHandle     = ::raw::HAL_InterruptHandle;
 pub type NotifierHandle      = ::raw::HAL_NotifierHandle;
 pub type RelayHandle         = ::raw::HAL_RelayHandle;
 pub type SolenoidHandle      = ::raw::HAL_SolenoidHandle;
+pub type EncoderHandle       = ::raw::HAL_EncoderHandle;

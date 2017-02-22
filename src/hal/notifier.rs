@@ -2,7 +2,7 @@ use ::error::*;
 use hal::handle::*;
 use ::raw::*;
 
-pub type HAL_NotifierProcessFunction = ::std::option::Option<unsafe extern "C" fn(currentTime: u64, handle: HAL_NotifierHandle)>;
+// pub type HAL_NotifierProcessFunction = ::std::option::Option<unsafe extern "C" fn(currentTime: u64, handle: HAL_NotifierHandle)>;
 
 /*
 unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closure: *mut c_void) where F: Fn(u32) {

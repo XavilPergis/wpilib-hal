@@ -74,6 +74,7 @@ pub type HAL_CompressorHandle = HAL_Handle;
 pub type HAL_CounterHandle = HAL_Handle;
 pub type HAL_DigitalHandle = HAL_Handle;
 pub type HAL_DigitalPWMHandle = HAL_Handle;
+pub type HAL_EncoderHandle = HAL_Handle;
 pub type HAL_GyroHandle = HAL_Handle;
 pub type HAL_InterruptHandle = HAL_Handle;
 pub type HAL_NotifierHandle = HAL_Handle;
@@ -1538,4 +1539,125 @@ extern "C" {
 }
 extern "C" {
     pub fn HAL_CloseOSSerial(port: HAL_SerialPort, status: *mut i32);
+}
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum HAL_EncoderIndexingType {
+    HAL_kResetWhileHigh = 0,
+    HAL_kResetWhileLow = 1,
+    HAL_kResetOnFallingEdge = 2,
+    HAL_kResetOnRisingEdge = 3,
+}
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum HAL_EncoderEncodingType {
+    HAL_Encoder_k1X = 0,
+    HAL_Encoder_k2X = 1,
+    HAL_Encoder_k4X = 2,
+}
+extern "C" {
+    pub fn HAL_InitializeEncoder(digitalSourceHandleA: HAL_Handle,
+                                 analogTriggerTypeA: HAL_AnalogTriggerType,
+                                 digitalSourceHandleB: HAL_Handle,
+                                 analogTriggerTypeB: HAL_AnalogTriggerType,
+                                 reverseDirection: HAL_Bool,
+                                 encodingType: HAL_EncoderEncodingType,
+                                 status: *mut i32) -> HAL_EncoderHandle;
+}
+extern "C" {
+    pub fn HAL_FreeEncoder(encoderHandle: HAL_EncoderHandle,
+                           status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_GetEncoder(encoderHandle: HAL_EncoderHandle, status: *mut i32)
+     -> i32;
+}
+extern "C" {
+    pub fn HAL_GetEncoderRaw(encoderHandle: HAL_EncoderHandle,
+                             status: *mut i32) -> i32;
+}
+extern "C" {
+    pub fn HAL_GetEncoderEncodingScale(encoderHandle: HAL_EncoderHandle,
+                                       status: *mut i32) -> i32;
+}
+extern "C" {
+    pub fn HAL_ResetEncoder(encoderHandle: HAL_EncoderHandle,
+                            status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_GetEncoderPeriod(encoderHandle: HAL_EncoderHandle,
+                                status: *mut i32) -> ::std::os::raw::c_double;
+}
+extern "C" {
+    pub fn HAL_SetEncoderMaxPeriod(encoderHandle: HAL_EncoderHandle,
+                                   maxPeriod: ::std::os::raw::c_double,
+                                   status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_GetEncoderStopped(encoderHandle: HAL_EncoderHandle,
+                                 status: *mut i32) -> HAL_Bool;
+}
+extern "C" {
+    pub fn HAL_GetEncoderDirection(encoderHandle: HAL_EncoderHandle,
+                                   status: *mut i32) -> HAL_Bool;
+}
+extern "C" {
+    pub fn HAL_GetEncoderDistance(encoderHandle: HAL_EncoderHandle,
+                                  status: *mut i32)
+     -> ::std::os::raw::c_double;
+}
+extern "C" {
+    pub fn HAL_GetEncoderRate(encoderHandle: HAL_EncoderHandle,
+                              status: *mut i32) -> ::std::os::raw::c_double;
+}
+extern "C" {
+    pub fn HAL_SetEncoderMinRate(encoderHandle: HAL_EncoderHandle,
+                                 minRate: ::std::os::raw::c_double,
+                                 status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_SetEncoderDistancePerPulse(encoderHandle: HAL_EncoderHandle,
+                                          distancePerPulse:
+                                              ::std::os::raw::c_double,
+                                          status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_SetEncoderReverseDirection(encoderHandle: HAL_EncoderHandle,
+                                          reverseDirection: HAL_Bool,
+                                          status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_SetEncoderSamplesToAverage(encoderHandle: HAL_EncoderHandle,
+                                          samplesToAverage: i32,
+                                          status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_GetEncoderSamplesToAverage(encoderHandle: HAL_EncoderHandle,
+                                          status: *mut i32) -> i32;
+}
+extern "C" {
+    pub fn HAL_SetEncoderIndexSource(encoderHandle: HAL_EncoderHandle,
+                                     digitalSourceHandle: HAL_Handle,
+                                     analogTriggerType: HAL_AnalogTriggerType,
+                                     type_: HAL_EncoderIndexingType,
+                                     status: *mut i32);
+}
+extern "C" {
+    pub fn HAL_GetEncoderFPGAIndex(encoderHandle: HAL_EncoderHandle,
+                                   status: *mut i32) -> i32;
+}
+extern "C" {
+    pub fn HAL_GetEncoderDecodingScaleFactor(encoderHandle: HAL_EncoderHandle,
+                                             status: *mut i32)
+     -> ::std::os::raw::c_double;
+}
+extern "C" {
+    pub fn HAL_GetEncoderDistancePerPulse(encoderHandle: HAL_EncoderHandle,
+                                          status: *mut i32)
+     -> ::std::os::raw::c_double;
+}
+extern "C" {
+    pub fn HAL_GetEncoderEncodingType(encoderHandle: HAL_EncoderHandle,
+                                      status: *mut i32)
+     -> HAL_EncoderEncodingType;
 }
