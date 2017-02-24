@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "HAL/Types.h"
+#include "Types.h"
 
 enum HAL_AccelerometerRange {
   HAL_AccelerometerRange_k2G = 0,

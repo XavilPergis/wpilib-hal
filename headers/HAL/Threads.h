@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "HAL/Types.h"
+#include "Types.h"
 
 #ifdef _WIN32
 #include <windows.h>

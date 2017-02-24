@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "FRC_NetworkCommunication/CANSessionMux.h"
+#include "../FRC_NetworkCommunication/CANSessionMux.h"
 
 void canTxSend(uint32_t arbID, uint8_t length,
                int32_t period);

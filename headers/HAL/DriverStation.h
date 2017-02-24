@@ -9,9 +9,7 @@
 
 #include <stdint.h>
 
-// #include <cstddef>
-
-#include "HAL/Types.h"
+#include "Types.h"
 
 #define HAL_IO_CONFIG_DATA_SIZE 32
 #define HAL_SYS_STATUS_DATA_SIZE 44

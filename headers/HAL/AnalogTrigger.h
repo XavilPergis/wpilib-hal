@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include "HAL/Types.h"
+#include "Types.h"
 
 enum HAL_AnalogTriggerType {
   HAL_Trigger_kInWindow = 0,

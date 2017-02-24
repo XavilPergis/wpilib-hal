@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include "HAL/Types.h"
+#include "Types.h"
 
 #ifdef __cplusplus
 extern "C" {
