@@ -14,26 +14,12 @@ pub enum IndexingType {
     ResetOnRisingEdge,
 }
 
-impl From<RawIndexingType> for IndexingType {
-    fn from(raw: RawIndexingType) -> IndexingType {
-        match raw {
-            HAL_EncoderIndexingType::HAL_kResetWhileHigh => IndexingType::ResetWhileHigh,
-            HAL_EncoderIndexingType::HAL_kResetWhileLow => IndexingType::ResetWhileLow,
-            HAL_EncoderIndexingType::HAL_kResetOnFallingEdge => IndexingType::ResetOnFallingEdge,
-            HAL_EncoderIndexingType::HAL_kResetOnRisingEdge => IndexingType::ResetOnRisingEdge,
-        }
-    }
-}
-
-impl From<IndexingType> for RawIndexingType {
-    fn from(idt: IndexingType) -> RawIndexingType {
-        match idt {
-            IndexingType::ResetWhileHigh => HAL_EncoderIndexingType::HAL_kResetWhileHigh,
-            IndexingType::ResetWhileLow => HAL_EncoderIndexingType::HAL_kResetWhileLow,
-            IndexingType::ResetOnFallingEdge => HAL_EncoderIndexingType::HAL_kResetOnFallingEdge,
-            IndexingType::ResetOnRisingEdge => HAL_EncoderIndexingType::HAL_kResetOnRisingEdge,
-        }
-    }
+impl_convert! {
+    HAL_EncoderIndexingType, IndexingType;
+    HAL_kResetWhileHigh <=> ResetWhileHigh,
+    HAL_kResetWhileLow <=> ResetWhileLow,
+    HAL_kResetOnFallingEdge <=> ResetOnFallingEdge,
+    HAL_kResetOnRisingEdge <=> ResetOnRisingEdge
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -43,31 +29,18 @@ pub enum EncodingType {
     Encoder4X,
 }
 
-impl From<RawEncodingType> for EncodingType {
-    fn from(raw: RawEncodingType) -> EncodingType {
-        match raw {
-            HAL_EncoderEncodingType::HAL_Encoder_k1X => EncodingType::Encoder1X,
-            HAL_EncoderEncodingType::HAL_Encoder_k2X => EncodingType::Encoder2X,
-            HAL_EncoderEncodingType::HAL_Encoder_k4X => EncodingType::Encoder4X,
-        }
-    }
-}
-
-impl From<EncodingType> for RawEncodingType {
-    fn from(et: EncodingType) -> RawEncodingType {
-        match et {
-            EncodingType::Encoder1X => HAL_EncoderEncodingType::HAL_Encoder_k1X,
-            EncodingType::Encoder2X => HAL_EncoderEncodingType::HAL_Encoder_k2X,
-            EncodingType::Encoder4X => HAL_EncoderEncodingType::HAL_Encoder_k4X,
-        }
-    }
+impl_convert! {
+    HAL_EncoderEncodingType, EncodingType;
+    HAL_Encoder_k1X <=> Encoder1X,
+    HAL_Encoder_k2X <=> Encoder2X,
+    HAL_Encoder_k4X <=> Encoder4X
 }
 
 pub fn initialize(source_handle_a: Handle, trigger_type_a: AnalogTriggerType,
                   source_handle_b: Handle, trigger_type_b: AnalogTriggerType,
                   reverse_direction: bool, encoding_type: EncodingType)
                   -> HalResult<EncoderHandle> {
-    unsafe { hal_call![ ptr HAL_InitializeEncoder(source_handle_a, trigger_type_a.into_raw(), source_handle_b, trigger_type_b.into_raw(), reverse_direction as HAL_Bool, encoding_type.into()) ] }
+    unsafe { hal_call![ ptr HAL_InitializeEncoder(source_handle_a, trigger_type_a.into(), source_handle_b, trigger_type_b.into(), reverse_direction as HAL_Bool, encoding_type.into()) ] }
 }
 
 pub fn free(handle: EncoderHandle) -> HalResult<()> {
@@ -135,7 +108,7 @@ pub fn get_samples_to_average(handle: EncoderHandle) -> HalResult<i32> {
 }
 
 pub fn set_index_source(handle: EncoderHandle, digital_source_handle: Handle, trigger_type: AnalogTriggerType, indexing_type: IndexingType) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetEncoderIndexSource(handle, digital_source_handle, trigger_type.into_raw(), indexing_type.into()) ] }
+    unsafe { hal_call![ ptr HAL_SetEncoderIndexSource(handle, digital_source_handle, trigger_type.into(), indexing_type.into()) ] }
 }
 
 pub fn get_fpga_index(handle: EncoderHandle) -> HalResult<i32> {

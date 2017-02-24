@@ -15,25 +15,11 @@ pub enum AccelerometerRange {
     Max2G,
 }
 
-impl AccelerometerRange {
-    /// Converts the enum back to the FFI enum
-    pub fn into_raw(&self) -> RawAccelerometerRange {
-        match *self {
-            AccelerometerRange::Max8G => HAL_AccelerometerRange::HAL_AccelerometerRange_k2G,
-            AccelerometerRange::Max4G => HAL_AccelerometerRange::HAL_AccelerometerRange_k4G,
-            AccelerometerRange::Max2G => HAL_AccelerometerRange::HAL_AccelerometerRange_k8G
-        }
-    }
-}
-
-impl From<RawAccelerometerRange> for AccelerometerRange {
-    fn from(raw: RawAccelerometerRange) -> Self {
-        match raw {
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k2G => AccelerometerRange::Max8G,
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k4G => AccelerometerRange::Max4G,
-            HAL_AccelerometerRange::HAL_AccelerometerRange_k8G => AccelerometerRange::Max2G
-        }
-    }
+impl_convert! {
+    HAL_AccelerometerRange, AccelerometerRange;
+    HAL_AccelerometerRange_k2G <=> Max2G,
+    HAL_AccelerometerRange_k4G <=> Max4G,
+    HAL_AccelerometerRange_k8G <=> Max8G
 }
 
 /// Set the accelerometer to active or standby mode.  It must be in standby
@@ -45,7 +31,7 @@ pub fn set_accelerometer_active(active: bool) {
 /// Set the range of values that can be measured (either 2, 4, or 8 g-forces).
 /// The accelerometer should be in standby mode when this is called.
 pub fn set_accelerometer_range(range: AccelerometerRange) {
-    unsafe { HAL_SetAccelerometerRange(range.into_raw()) }
+    unsafe { HAL_SetAccelerometerRange(range.into()) }
 }
 
 /// Gets the acceleromenter's X (Left/right) value. Returns a value in units of 1 g-force.

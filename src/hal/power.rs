@@ -1,6 +1,28 @@
 use ::error::*;
 use ::raw::*;
 
+pub enum Something {
+    Input, User6v, User5v, User3v3
+}
+
+pub fn get_voltage(something: Something) -> HalResult<f64> {
+    match something {
+        Something::Input => get_vin_voltage(),
+        Something::User6v => get_user_voltage6v(),
+        Something::User5v => get_user_voltage5v(),
+        Something::User3v3 => get_user_voltage3v3()
+    }
+}
+
+pub fn get_current(something: Something) -> HalResult<f64> {
+    match something {
+        Something::Input => get_vin_current(),
+        Something::User6v => get_user_current6v(),
+        Something::User5v => get_user_current5v(),
+        Something::User3v3 => get_user_current3v3()
+    }
+}
+
 pub fn get_vin_voltage() -> HalResult<f64> {
     unsafe { hal_call![ ptr HAL_GetVinVoltage() ] }
 }

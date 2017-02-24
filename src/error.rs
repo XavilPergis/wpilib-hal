@@ -6,10 +6,6 @@ use std::fmt;
 /// Result type encompassing most errors that are returned in this library
 pub type HalResult<T> = Result<T, HalError>;
 
-// Because it turns out WPILIB is really messy and have two ways of indicating
-// failure...
-// Or not at all...
-
 /// Call a HAL function and wrap the output in a `HalResult`
 #[macro_export]
 macro_rules! hal_call {
@@ -32,16 +28,14 @@ macro_rules! hal_call {
     }};
 }
 
-// FIXME: Is the i32 that's returned actually a status code?
-
 /// An error as emitted by WPILib
 #[allow(missing_docs)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum FfiError {
     SampleRateTooHigh,
     VoltageOutOfRange,
     LoopTimingError,
-    SpiWriteNoMosi, // MOSI: Master Out Slave In
+    SpiWriteNoMosi, // Master Out Slave In
     SpiReadNoMiso, // Master In Slave Out
     SpiReadNoData,
     IncompatibleState,
@@ -66,11 +60,13 @@ pub enum FfiError {
     Unknown(i32),
 }
 
+/// Converts a constant-length array with an ending null byte to a `&str`
 macro_rules! arr_to_str {
     ($val:ident) => {
         ::std::str::from_utf8(&$crate::raw::$val[0..$val.len()-1]).unwrap().to_string()
     };
 }
+
 impl fmt::Display for FfiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
@@ -118,11 +114,9 @@ impl Error for FfiError {
 pub enum HalError {
     /// An FFI error
     Hal(FfiError),
-    /// A string that was provided contained a null byte and could not be
-    /// converted into a CString
+    /// A string that was provided contained a null byte and could not be converted into a CString
     NullError(NulError),
-    /// Tried to create a resource struct, but its handle was already
-    /// initialized
+    /// Tried to create a resource struct, but its handle was already initialized
     ResourceAlreadyInitialized,
     /// HAL was not initialized, but we tried to invoke a HAL function.
     HalNotInitialized,

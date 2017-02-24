@@ -33,7 +33,7 @@ pub fn read_interrupt_falling_timestamp(handle: InterruptHandle) -> HalResult<f6
 }
 
 pub fn request_interrupts(handle: InterruptHandle, digital_source_handle: DigitalHandle, analog_trigger_type: AnalogTriggerType) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_RequestInterrupts(handle, digital_source_handle, analog_trigger_type.into_raw()) ] }
+    unsafe { hal_call![ ptr HAL_RequestInterrupts(handle, digital_source_handle, analog_trigger_type.into()) ] }
 }
 
 unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closure: *mut c_void) where F: Fn(u32) {

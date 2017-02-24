@@ -13,31 +13,17 @@ pub enum CounterMode {
     ExternalDirection,
 }
 
-impl CounterMode {
-    pub fn into_raw(&self) -> RawCounterMode {
-        match *self {
-            CounterMode::ExternalDirection => HAL_Counter_Mode::HAL_Counter_kExternalDirection,
-            CounterMode::PulseLength => HAL_Counter_Mode::HAL_Counter_kPulseLength,
-            CounterMode::Semiperiod => HAL_Counter_Mode::HAL_Counter_kSemiperiod,
-            CounterMode::TwoPulse => HAL_Counter_Mode::HAL_Counter_kTwoPulse,
-        }
-    }
-}
-
-impl From<RawCounterMode> for CounterMode {
-    fn from(raw: RawCounterMode) -> Self {
-        match raw {
-            HAL_Counter_Mode::HAL_Counter_kExternalDirection => CounterMode::ExternalDirection,
-            HAL_Counter_Mode::HAL_Counter_kPulseLength => CounterMode::PulseLength,
-            HAL_Counter_Mode::HAL_Counter_kSemiperiod => CounterMode::Semiperiod,
-            HAL_Counter_Mode::HAL_Counter_kTwoPulse => CounterMode::TwoPulse,
-        }
-    }
+impl_convert! {
+    HAL_Counter_Mode, CounterMode;
+    HAL_Counter_kExternalDirection <=> ExternalDirection,
+    HAL_Counter_kPulseLength <=> PulseLength,
+    HAL_Counter_kSemiperiod <=> Semiperiod,
+    HAL_Counter_kTwoPulse <=> TwoPulse
 }
 
 // FIXME
 pub fn initialize(mode: CounterMode, index: &mut i32) -> HalResult<CounterHandle> {
-    unsafe { hal_call![ ptr HAL_InitializeCounter(mode.into_raw(), index) ] }
+    unsafe { hal_call![ ptr HAL_InitializeCounter(mode.into(), index) ] }
 }
 
 pub fn free(handle: CounterHandle) -> HalResult<()> {
@@ -49,7 +35,7 @@ pub fn set_average_size(handle: CounterHandle, size: i32) -> HalResult<()> {
 }
 
 pub fn set_up_source(handle: CounterHandle, digital_source_handle: DigitalHandle, trigger_type: AnalogTriggerType) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetCounterUpSource(handle, digital_source_handle, trigger_type.into_raw()) ] }
+    unsafe { hal_call![ ptr HAL_SetCounterUpSource(handle, digital_source_handle, trigger_type.into()) ] }
 }
 
 pub fn set_up_source_edge(handle: CounterHandle, rising_edge: bool, falling_edge: bool) -> HalResult<()> {
@@ -61,7 +47,7 @@ pub fn clear_up_source(handle: CounterHandle) -> HalResult<()> {
 }
 
 pub fn set_down_source(handle: CounterHandle, digital_source_handle: DigitalHandle, analog_trigger_type: AnalogTriggerType) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetCounterDownSource(handle, digital_source_handle, analog_trigger_type.into_raw()) ] }
+    unsafe { hal_call![ ptr HAL_SetCounterDownSource(handle, digital_source_handle, analog_trigger_type.into()) ] }
 }
 
 pub fn set_down_source_edge(handle: CounterHandle, rising_edge: bool, falling_edge: bool) -> HalResult<()> {

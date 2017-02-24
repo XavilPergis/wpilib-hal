@@ -18,26 +18,12 @@ pub enum AnalogTriggerType {
     FallingPulse,
 }
 
-impl AnalogTriggerType {
-    pub fn into_raw(&self) -> RawAnalogTriggerType {
-        match *self {
-            AnalogTriggerType::InWindow     => HAL_AnalogTriggerType::HAL_Trigger_kInWindow,
-            AnalogTriggerType::State        => HAL_AnalogTriggerType::HAL_Trigger_kState,
-            AnalogTriggerType::RisingPulse  => HAL_AnalogTriggerType::HAL_Trigger_kRisingPulse,
-            AnalogTriggerType::FallingPulse => HAL_AnalogTriggerType::HAL_Trigger_kFallingPulse,
-        }
-    }
-}
-
-impl From<RawAnalogTriggerType> for AnalogTriggerType {
-    fn from(raw: RawAnalogTriggerType) -> Self {
-        match raw {
-            HAL_AnalogTriggerType::HAL_Trigger_kInWindow     => AnalogTriggerType::InWindow,
-            HAL_AnalogTriggerType::HAL_Trigger_kState        => AnalogTriggerType::State,
-            HAL_AnalogTriggerType::HAL_Trigger_kRisingPulse  => AnalogTriggerType::RisingPulse,
-            HAL_AnalogTriggerType::HAL_Trigger_kFallingPulse => AnalogTriggerType::FallingPulse,
-        }
-    }
+impl_convert! {
+    HAL_AnalogTriggerType, AnalogTriggerType;
+    HAL_Trigger_kInWindow <=> InWindow,
+    HAL_Trigger_kState <=> State,
+    HAL_Trigger_kRisingPulse <=> RisingPulse,
+    HAL_Trigger_kFallingPulse <=> FallingPulse
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -100,7 +86,7 @@ pub fn get_state(handle: AnalogTriggerHandle) -> HalResult<bool> {
 }
 
 pub fn get_output(handle: AnalogTriggerHandle, trigger_type: AnalogTriggerType) -> HalResult<bool> {
-    unsafe { hal_call![ ptr HAL_GetAnalogTriggerOutput(handle, trigger_type.into_raw()) ].map(|n| n != 0) }
+    unsafe { hal_call![ ptr HAL_GetAnalogTriggerOutput(handle, trigger_type.into()) ].map(|n| n != 0) }
 }
 
 pub fn if_activated<F>(handle: AnalogTriggerHandle, trigger_type: AnalogTriggerType, func: F) where F: Fn() {
