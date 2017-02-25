@@ -5,6 +5,7 @@ extern crate bindgen;
 use bindgen::builder;
 use std::slice::SliceConcatExt;
 use std::path::Path;
+use std::env;
 
 const CONST_NAMES: [&'static str; 23] = [
     "SAMPLE_RATE_TOO_HIGH",
@@ -51,4 +52,23 @@ fn main() {
         // Write the generated bindings to an output file.
         bindings.write_to_file("src/raw.rs").unwrap();
     }
+
+    // Link to the HAL libraries
+    for lib in [
+        "HALAthena",
+        "wpiutil",
+        "FRC_NetworkCommunication",
+        "RoboRIO_FRC_ChipObject",
+        "NiFpga",
+        "NiFpgaLv",
+        "niriosession",
+        "spi",
+        "i2c",
+        "visa",
+        "NiRioSrv",
+        "niriodevenum"].iter()
+    {
+        println!("cargo:rustc-link-lib=dylib={}", lib);
+    }
+    println!("cargo:rustc-link-search=native={}/lib", env::current_dir().unwrap().display());
 }
