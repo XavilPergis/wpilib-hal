@@ -20,7 +20,11 @@ extern crate time;
 #[macro_use]
 pub mod error;
 
+#[macro_use]
+pub mod log;
+
 /// Contains bindings to the HAL
+#[macro_use]
 pub mod hal;
 
 #[allow(non_camel_case_types, non_snake_case)]

@@ -2,20 +2,14 @@
 // use hal::handle::*;
 // use ::raw::*;
 //
-
-// unsafe extern "C" fn generate_callback<F>(func: F) -> HAL_NotifierProcessFunction where F: Fn(u64, HAL_NotifierHandle) {
-//
-//     unsafe extern "C" fn callback(time: u64, handle: NotifierHandle) {
-//         func(time, handle)
-//     }
-//
-//     Some(callback)
+// unsafe extern "C" fn foo<F>(current_time: u64, handle: NotifierHandle) where F: Fn(u64, NotifierHandle) {
+//     let closure = get_notifier_param(handle);
 // }
 //
 // pub fn initialize_notifier<F>(handler: F) -> HalResult<NotifierHandle> where F: Fn(u64, NotifierHandle) {
 //     let extern_handler = &handler as *const _ as *mut ::std::os::raw::c_void;
-//     let callback = generate_callback::<F>(handler);
-//     unsafe { hal_call![ ptr HAL_InitializeNotifier(callback, extern_handler) ] }
+//     // let callback = generate_callback::<F>(handler);
+//     unsafe { hal_call![ ptr HAL_InitializeNotifier(foo, extern_handler) ] }
 // }
 //
 // pub fn initialize_notifier_threaded(process: HAL_NotifierProcessFunction,

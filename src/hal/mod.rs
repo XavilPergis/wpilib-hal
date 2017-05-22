@@ -3,11 +3,28 @@ use ::handle::*;
 use ::raw::*;
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::sync::Mutex;
 
-lazy_static! {
-    static ref HAL_INITIALIZED: Mutex<bool> = Mutex::new(false);
+macro_rules! impl_convert {
+    ($a:ident, $b:ident; $($variant_a:ident <=> $variant_b:ident),*) => {
+        impl From<$a> for $b {
+            fn from(val: $a) -> $b {
+                match val {
+                    $($a::$variant_a => $b::$variant_b,)*
+                }
+            }
+        }
+
+        impl From<$b> for $a {
+            fn from(val: $b) -> $a {
+                match val {
+                    $($b::$variant_b => $a::$variant_a,)*
+                }
+            }
+        }
+    };
 }
+
+static mut HAL_INITIALIZED: bool = false;
 
 /// Contains typedefs that rename some raw types with proper names
 pub mod handle;
@@ -30,8 +47,8 @@ pub mod analog_output;
 /// Bindings for analog triggers
 pub mod analog_trigger;
 
-/// Bindings for CAN
-pub mod can;
+// /// Bindings for CAN
+// pub mod can;
 
 /// Bindings for compressors
 pub mod compressor;
@@ -109,77 +126,72 @@ impl From<RawRuntimeType> for RuntimeType {
 
 // I think this was in HAL/Constants.h?
 /// Gets how many clock ticks occur per microsecond
-pub fn get_system_clock_ticks_per_microsecond() -> i32 {
-    unsafe { HAL_GetSystemClockTicksPerMicrosecond() }
+pub unsafe fn get_system_clock_ticks_per_microsecond() -> i32 {
+    HAL_GetSystemClockTicksPerMicrosecond()
 }
 
-pub fn get_error_message(code: i32) -> String {
-    unsafe {
-        let char_ptr = HAL_GetErrorMessage(code);
-        CStr::from_ptr(char_ptr).to_string_lossy().into_owned()
-    }
+pub unsafe fn get_error_message(code: i32) -> String {
+    let char_ptr = HAL_GetErrorMessage(code);
+    CStr::from_ptr(char_ptr).to_string_lossy().into_owned()
 }
 
-pub fn get_fpga_version() -> HalResult<i32> {
-    unsafe { hal_call![ ptr HAL_GetFPGAVersion() ] }
+pub unsafe fn get_fpga_version() -> HalResult<i32> {
+    hal_call![ ptr HAL_GetFPGAVersion() ]
 }
 
-pub fn get_fpga_revision() -> HalResult<i64> {
-    unsafe { hal_call![ ptr HAL_GetFPGARevision() ] }
+pub unsafe fn get_fpga_revision() -> HalResult<i64> {
+    hal_call![ ptr HAL_GetFPGARevision() ]
 }
 
-pub fn get_runtime_type() -> RuntimeType {
-    unsafe { RuntimeType::from(HAL_GetRuntimeType()) }
+pub unsafe fn get_runtime_type() -> RuntimeType {
+    RuntimeType::from(HAL_GetRuntimeType())
 }
 
-pub fn get_fpga_button() -> HalResult<bool> {
-    unsafe { hal_call![ ptr HAL_GetFPGAButton() ].map(|n| n != 0) }
+pub unsafe fn get_fpga_button() -> HalResult<bool> {
+    hal_call![ ptr HAL_GetFPGAButton() ].map(|n| n != 0)
 }
 
-pub fn get_system_active() -> HalResult<bool> {
-    unsafe { hal_call![ ptr HAL_GetSystemActive() ].map(|n| n != 0) }
+pub unsafe fn get_system_active() -> HalResult<bool> {
+    hal_call![ ptr HAL_GetSystemActive() ].map(|n| n != 0)
 }
 
 /// Gets whether the robot is underpowered. Basically nothing will work if the bot is browned out.
-pub fn get_browned_out() -> HalResult<bool> {
-    unsafe { hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0) }
+pub unsafe fn get_browned_out() -> HalResult<bool> {
+    hal_call![ ptr HAL_GetBrownedOut() ].map(|n| n != 0)
 }
 
-pub fn base_initialize() -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_BaseInitialize() ] }
+pub unsafe fn base_initialize() -> HalResult<()> {
+    hal_call![ ptr HAL_BaseInitialize() ]
 }
 
-pub fn get_port(channel: i32) -> PortHandle {
-    unsafe { HAL_GetPort(channel) }
+pub unsafe fn get_port(channel: i32) -> PortHandle {
+    HAL_GetPort(channel)
 }
 
-pub fn get_port_with_module(module: i32, channel: i32) -> PortHandle {
-    unsafe { HAL_GetPortWithModule(module, channel) }
+pub unsafe fn get_port_with_module(module: i32, channel: i32) -> PortHandle {
+    HAL_GetPortWithModule(module, channel)
 }
 
-pub fn get_fpga_time() -> HalResult<u64> {
-    unsafe { hal_call![ ptr HAL_GetFPGATime() ] }
+pub unsafe fn get_fpga_time() -> HalResult<u64> {
+    hal_call![ ptr HAL_GetFPGATime() ]
 }
 
-/// Initialize the HAL
-pub fn hal_initialize(mode: i32) -> i32 {
-    let mut initialized = HAL_INITIALIZED.lock().unwrap();
-    *initialized = true;
+/// Initialize the HAL.
+/// Must not be called from separate threads at the same time (access of a static mut)
+pub unsafe fn hal_initialize(mode: i32) -> i32 {
+    HAL_INITIALIZED = true;
 
-    unsafe { HAL_Initialize(mode) }
+    HAL_Initialize(mode)
 }
 
-pub fn hal_is_initialized() -> bool {
-    // Our code will never panic, so we can just unwrap the lock
-    // The value is copied and the lock is dropped before the end of the function
-    *HAL_INITIALIZED.lock().unwrap()
+/// Must not be called from separate threads at the same time (access of a static mut)
+pub unsafe fn hal_is_initialized() -> bool {
+    HAL_INITIALIZED
 }
 
-pub fn report(resource: i32, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
-    unsafe {
-        HAL_Report(resource,
-                   instance_number,
-                   context,
-                   feature.as_ptr() as *const c_char)
-    }
+pub unsafe fn report(resource: i32, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
+    HAL_Report(resource,
+               instance_number,
+               context,
+               feature.as_ptr() as *const c_char)
 }
