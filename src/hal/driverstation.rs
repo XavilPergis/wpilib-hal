@@ -242,70 +242,62 @@ pub enum UserProgramMode {
 }
 
 // TODO: What is this?
-pub fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
-    unsafe { hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ] }
+pub unsafe fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
+    hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ]
 }
 
 /// Gets a joystick's descriptor from the driver station
-pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
-    unsafe {
-        let mut descriptor = mem::zeroed();
-        hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut RawJoystickDescriptor))?;
+pub unsafe fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
+    let mut descriptor = mem::zeroed();
+    hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut RawJoystickDescriptor))?;
 
-        Ok(JoystickDescriptor::from(descriptor))
-    }
+    Ok(JoystickDescriptor::from(descriptor))
 }
 
 /// Gets the rotations on each "axis" of a joystick. An axis is basically just
 /// something that can
 /// be somewhere in a range of values.
-pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
-    unsafe {
-        let mut raw_axes = mem::zeroed();
-        hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut RawJoystickAxes))?;
+pub unsafe fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
+    let mut raw_axes = mem::zeroed();
+    hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut RawJoystickAxes))?;
 
-        Ok(JoystickAxes::from(raw_axes))
-    }
+    Ok(JoystickAxes::from(raw_axes))
 }
 
 /// Gets the state of all the POVs on the joystick.
-pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
-    unsafe {
-        let mut raw_povs = mem::zeroed();
-        hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut RawJoystickPovs))?;
+pub unsafe fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
+    let mut raw_povs = mem::zeroed();
+    hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut RawJoystickPovs))?;
 
-        Ok(JoystickPovs::from(raw_povs))
-    }
+    Ok(JoystickPovs::from(raw_povs))
 }
 
 /// Gets what buttons are pressed on a joystick
-pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
-    unsafe {
-        let mut raw_buttons: RawJoystickButtons = mem::zeroed();
-        hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut RawJoystickButtons))?;
+pub unsafe fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
+    let mut raw_buttons: RawJoystickButtons = mem::zeroed();
+    hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut RawJoystickButtons))?;
 
-        Ok(JoystickButtons::from(raw_buttons))
-    }
+    Ok(JoystickButtons::from(raw_buttons))
 }
 
 /// Gets whether the joystick is an xbox controller or not
-pub fn get_joystick_is_xbox(joystick_num: i32) -> HalResult<bool> {
+pub unsafe fn get_joystick_is_xbox(joystick_num: i32) -> HalResult<bool> {
     Ok(get_joystick_descriptor(joystick_num)?.is_xbox)
 }
 
 /// TODO: Figure out what a joystick type is
-pub fn get_joystick_type(joystick_num: i32) -> HalResult<JoystickType> {
+pub unsafe fn get_joystick_type(joystick_num: i32) -> HalResult<JoystickType> {
     Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.stick_type))
 }
 
 /// Gets the name of a joystick. This will return a string with a length no
 /// greater than 256.
-pub fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
+pub unsafe fn get_joystick_name(joystick_num: i32) -> HalResult<String> {
     Ok(get_joystick_descriptor(joystick_num)?.name)
 }
 
 // TODO: Figure out what a joystick type is
-pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<JoystickType> {
+pub unsafe fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<JoystickType> {
     if axis >= 0 {
         Ok(JoystickType::from(get_joystick_descriptor(joystick_num)?.axis_types[axis as usize] as i32))
     } else {
@@ -314,13 +306,13 @@ pub fn get_joystick_axis_type(joystick_num: i32, axis: i32) -> HalResult<Joystic
 }
 
 // TODO: What is this?
-pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) -> HalResult<()> {
-    unsafe { hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble)) }
+pub unsafe fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) -> HalResult<()> {
+    hal_call!(ret HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble))
 }
 
 // TODO: What are we actually observing? This should be called in the main DS loop
 /// Notifies the DS that the user program is running, and what mode it is running in.
-pub fn observe_user_program(mode: UserProgramMode) {
+pub unsafe fn observe_user_program(mode: UserProgramMode) {
     match mode {
         UserProgramMode::Starting => self::observe_user_program_starting(),
         UserProgramMode::Disabled => self::observe_user_program_disabled(),
@@ -331,18 +323,16 @@ pub fn observe_user_program(mode: UserProgramMode) {
 }
 
 /// Initialize the driver station. Should only be called once.
-pub fn initialize_driver_station() {
-    unsafe { HAL_InitializeDriverStation() };
+pub unsafe fn initialize_driver_station() {
+    HAL_InitializeDriverStation()
 }
 
 /// Gets a control word directly from the driver station. The result should be cached for ~50ms
-pub fn get_control_word() -> HalResult<ControlWord> {
-    unsafe {
-        let mut control_word: RawControlWord = mem::zeroed();
-        hal_call!(ret HAL_GetControlWord(&mut control_word as *mut RawControlWord))?;
+pub unsafe fn get_control_word() -> HalResult<ControlWord> {
+    let mut control_word: RawControlWord = mem::zeroed();
+    hal_call!(ret HAL_GetControlWord(&mut control_word as *mut RawControlWord))?;
 
-        Ok(ControlWord::from(control_word))
-    }
+    Ok(ControlWord::from(control_word))
 }
 
 /// Blocks until the DS returns some data. Good for building concurrent
@@ -362,26 +352,26 @@ pub fn get_control_word() -> HalResult<ControlWord> {
 ///     }
 /// });
 /// ```
-pub fn wait_for_ds_data() {
-    unsafe { HAL_WaitForDSData() };
+pub unsafe fn wait_for_ds_data() {
+    HAL_WaitForDSData()
 }
 
 /// Reports an error to the driver station
-pub fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &str,
+pub unsafe fn send_error(is_error: bool, error_code: i32, is_lv_code: bool, details: &str,
                   location: &str, call_stack: &str, print_message: bool)
                   -> Result<(), HalError> {
     let details_raw = CString::new(details).map_err(HalError::from)?;
     let location_raw = CString::new(location).map_err(HalError::from)?;
     let call_stack_raw = CString::new(call_stack).map_err(HalError::from)?;
 
-    unsafe { hal_call!(ret HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,
+    hal_call!(ret HAL_SendError(is_error as HAL_Bool, error_code, is_lv_code as HAL_Bool,
     details_raw.as_ptr(), location_raw.as_ptr(), call_stack_raw.as_ptr(),
-    print_message as HAL_Bool)) }
+    print_message as HAL_Bool))
 }
 
 /// Gets where the driver station thinks it is.
-pub fn get_alliance_station() -> HalResult<AllianceStation> {
-    let station_id = unsafe { hal_call!(ptr HAL_GetAllianceStation())? };
+pub unsafe fn get_alliance_station() -> HalResult<AllianceStation> {
+    let station_id = hal_call!(ptr HAL_GetAllianceStation())?;
 
     use raw::HAL_AllianceStationID;
 
@@ -400,8 +390,8 @@ pub fn get_alliance_station() -> HalResult<AllianceStation> {
 /// Since this is not the canonical match time, it cannot be used to dispute
 /// times or garuntee
 /// that a task completes before the match runs out.
-pub fn get_match_time_approx() -> HalResult<Duration> {
-    let time = unsafe { hal_call![ ptr HAL_GetMatchTime() ]? };
+pub unsafe fn get_match_time_approx() -> HalResult<Duration> {
+    let time = hal_call![ ptr HAL_GetMatchTime() ]?;
 
     // TODO: What the hell are the units that are returned!? Probably seconds...
     let time_ns = (time * 1_000_000_000f64) as i64;
@@ -409,26 +399,26 @@ pub fn get_match_time_approx() -> HalResult<Duration> {
 }
 
 #[allow(missing_docs)]
-pub fn observe_user_program_starting() {
-    unsafe { HAL_ObserveUserProgramStarting() }
+pub unsafe fn observe_user_program_starting() {
+    HAL_ObserveUserProgramStarting()
 }
 
 #[allow(missing_docs)]
-pub fn observe_user_program_disabled() {
-    unsafe { HAL_ObserveUserProgramDisabled() }
+pub unsafe fn observe_user_program_disabled() {
+    HAL_ObserveUserProgramDisabled()
 }
 
 #[allow(missing_docs)]
-pub fn observe_user_program_autonomous() {
-    unsafe { HAL_ObserveUserProgramAutonomous() }
+pub unsafe fn observe_user_program_autonomous() {
+    HAL_ObserveUserProgramAutonomous()
 }
 
 #[allow(missing_docs)]
-pub fn observe_user_program_teleop() {
-    unsafe { HAL_ObserveUserProgramTeleop() }
+pub unsafe fn observe_user_program_teleop() {
+    HAL_ObserveUserProgramTeleop()
 }
 
 #[allow(missing_docs)]
-pub fn observe_user_program_test() {
-    unsafe { HAL_ObserveUserProgramTest() }
+pub unsafe fn observe_user_program_test() {
+    HAL_ObserveUserProgramTest()
 }

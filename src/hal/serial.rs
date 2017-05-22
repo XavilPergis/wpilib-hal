@@ -25,59 +25,59 @@ impl_convert! {
     HAL_SerialPort_USB2 <=> USB2
 }
 
-pub fn initialize(port: SerialPort) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_InitializeSerialPort(port.into()) ] }
+pub unsafe fn initialize(port: SerialPort) -> HalResult<()> {
+    hal_call![ ptr HAL_InitializeSerialPort(port.into()) ]
 }
 
-pub fn set_baud_rate(port: SerialPort, baud: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialBaudRate(port.into(), baud) ] }
+pub unsafe fn set_baud_rate(port: SerialPort, baud: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialBaudRate(port.into(), baud) ]
 }
 
-pub fn set_data_bits(port: SerialPort, bits: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialDataBits(port.into(), bits) ] }
+pub unsafe fn set_data_bits(port: SerialPort, bits: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialDataBits(port.into(), bits) ]
 }
 
 // TODO: What is parity?
-pub fn set_parity(port: SerialPort, parity: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialParity(port.into(), parity) ] }
+pub unsafe fn set_parity(port: SerialPort, parity: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialParity(port.into(), parity) ]
 }
 
-pub fn set_stop_bits(port: SerialPort, stop_bits: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialStopBits(port.into(), stop_bits) ] }
+pub unsafe fn set_stop_bits(port: SerialPort, stop_bits: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialStopBits(port.into(), stop_bits) ]
 }
 
 // TODO: What is "mode"?
-pub fn set_write_mode(port: SerialPort, mode: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialWriteMode(port.into(), mode) ] }
+pub unsafe fn set_write_mode(port: SerialPort, mode: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialWriteMode(port.into(), mode) ]
 }
 
 // TODO: What is "flow"?
-pub fn set_flow_control(port: SerialPort, flow: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialFlowControl(port.into(), flow) ] }
+pub unsafe fn set_flow_control(port: SerialPort, flow: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialFlowControl(port.into(), flow) ]
 }
 
-pub fn set_timeout(port: SerialPort, timeout: f64) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialTimeout(port.into(), timeout) ] }
+pub unsafe fn set_timeout(port: SerialPort, timeout: f64) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialTimeout(port.into(), timeout) ]
 }
 
-pub fn enable_termination(port: SerialPort, terminator: u8) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_EnableSerialTermination(port.into(), terminator as c_char) ] }
+pub unsafe fn enable_termination(port: SerialPort, terminator: u8) -> HalResult<()> {
+    hal_call![ ptr HAL_EnableSerialTermination(port.into(), terminator as c_char) ]
 }
 
-pub fn disable_termination(port: SerialPort) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_DisableSerialTermination(port.into()) ] }
+pub unsafe fn disable_termination(port: SerialPort) -> HalResult<()> {
+    hal_call![ ptr HAL_DisableSerialTermination(port.into()) ]
 }
 
-pub fn set_read_buffer_size(port: SerialPort, size: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialReadBufferSize(port.into(), size) ] }
+pub unsafe fn set_read_buffer_size(port: SerialPort, size: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialReadBufferSize(port.into(), size) ]
 }
 
-pub fn set_write_buffer_size(port: SerialPort, size: i32) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_SetSerialWriteBufferSize(port.into(), size) ] }
+pub unsafe fn set_write_buffer_size(port: SerialPort, size: i32) -> HalResult<()> {
+    hal_call![ ptr HAL_SetSerialWriteBufferSize(port.into(), size) ]
 }
 
-pub fn get_bytes_received(port: SerialPort) -> HalResult<i32> {
-    unsafe { hal_call![ ptr HAL_GetSerialBytesReceived(port.into()) ] }
+pub unsafe fn get_bytes_received(port: SerialPort) -> HalResult<i32> {
+    hal_call![ ptr HAL_GetSerialBytesReceived(port.into()) ]
 }
 
 // The RoboRIO is ARM, so we really only need to support ARM architecture.
@@ -87,22 +87,22 @@ pub fn get_bytes_received(port: SerialPort) -> HalResult<i32> {
 // sequences, so we just store it in a u8 slice
 // TODO: Maybe make this a bit more robust?
 
-pub fn read(port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
-    unsafe { hal_call![ ptr HAL_ReadSerial(port.as_serial()?.into(), buffer.as_mut_ptr() as *mut c_char, count) ] }
+pub unsafe fn read(port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
+    hal_call![ ptr HAL_ReadSerial(port.as_serial()?.into(), buffer.as_mut_ptr() as *mut c_char, count) ]
 }
 
-pub fn write(port: RobotIoPort, buffer: &[u8], count: i32) -> HalResult<i32> {
-    unsafe { hal_call![ ptr HAL_WriteSerial(port.as_serial()?.into(), buffer.as_ptr() as *const c_char, count) ] }
+pub unsafe fn write(port: RobotIoPort, buffer: &[u8], count: i32) -> HalResult<i32> {
+    hal_call![ ptr HAL_WriteSerial(port.as_serial()?.into(), buffer.as_ptr() as *const c_char, count) ]
 }
 
-pub fn flush(port: RobotIoPort) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_FlushSerial(port.as_serial()?.into()) ] }
+pub unsafe fn flush(port: RobotIoPort) -> HalResult<()> {
+    hal_call![ ptr HAL_FlushSerial(port.as_serial()?.into()) ]
 }
 
-pub fn clear(port: SerialPort) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_ClearSerial(port.into()) ] }
+pub unsafe fn clear(port: SerialPort) -> HalResult<()> {
+    hal_call![ ptr HAL_ClearSerial(port.into()) ]
 }
 
-pub fn close(port: SerialPort) -> HalResult<()> {
-    unsafe { hal_call![ ptr HAL_CloseSerial(port.into()) ] }
+pub unsafe fn close(port: SerialPort) -> HalResult<()> {
+    hal_call![ ptr HAL_CloseSerial(port.into()) ]
 }

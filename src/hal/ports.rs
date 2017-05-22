@@ -10,21 +10,21 @@
 
 use ::raw::*;
 
-pub fn get_num_accumulators()        -> i32 { unsafe { HAL_GetNumAccumulators() } }
-pub fn get_num_analog_triggers()     -> i32 { unsafe { HAL_GetNumAnalogTriggers() } }
-pub fn get_num_analog_inputs()       -> i32 { unsafe { HAL_GetNumAnalogInputs() } }
-pub fn get_num_analog_outputs()      -> i32 { unsafe { HAL_GetNumAnalogOutputs() } }
-pub fn get_num_counters()            -> i32 { unsafe { HAL_GetNumCounters() } }
-pub fn get_num_digital_headers()     -> i32 { unsafe { HAL_GetNumDigitalHeaders() } }
-pub fn get_num_pwm_headers()         -> i32 { unsafe { HAL_GetNumPWMHeaders() } }
-pub fn get_num_digital_channels()    -> i32 { unsafe { HAL_GetNumDigitalChannels() } }
-pub fn get_num_pwm_channels()        -> i32 { unsafe { HAL_GetNumPWMChannels() } }
-pub fn get_num_digital_pwm_outputs() -> i32 { unsafe { HAL_GetNumDigitalPWMOutputs() } }
-pub fn get_num_encoders()            -> i32 { unsafe { HAL_GetNumEncoders() } }
-pub fn get_num_interrupts()          -> i32 { unsafe { HAL_GetNumInterrupts() } }
-pub fn get_num_relay_channels()      -> i32 { unsafe { HAL_GetNumRelayChannels() } }
-pub fn get_num_relay_headers()       -> i32 { unsafe { HAL_GetNumRelayHeaders() } }
-pub fn get_num_pcm_modules()         -> i32 { unsafe { HAL_GetNumPCMModules() } }
-pub fn get_num_solenoid_channels()   -> i32 { unsafe { HAL_GetNumSolenoidChannels() } }
-pub fn get_num_pdp_modules()         -> i32 { unsafe { HAL_GetNumPDPModules() } }
-pub fn get_num_pdp_channels()        -> i32 { unsafe { HAL_GetNumPDPChannels() } }
+pub unsafe fn get_num_accumulators()        -> i32 { HAL_GetNumAccumulators() }
+pub unsafe fn get_num_analog_triggers()     -> i32 { HAL_GetNumAnalogTriggers() }
+pub unsafe fn get_num_analog_inputs()       -> i32 { HAL_GetNumAnalogInputs() }
+pub unsafe fn get_num_analog_outputs()      -> i32 { HAL_GetNumAnalogOutputs() }
+pub unsafe fn get_num_counters()            -> i32 { HAL_GetNumCounters() }
+pub unsafe fn get_num_digital_headers()     -> i32 { HAL_GetNumDigitalHeaders() }
+pub unsafe fn get_num_pwm_headers()         -> i32 { HAL_GetNumPWMHeaders() }
+pub unsafe fn get_num_digital_channels()    -> i32 { HAL_GetNumDigitalChannels() }
+pub unsafe fn get_num_pwm_channels()        -> i32 { HAL_GetNumPWMChannels() }
+pub unsafe fn get_num_digital_pwm_outputs() -> i32 { HAL_GetNumDigitalPWMOutputs() }
+pub unsafe fn get_num_encoders()            -> i32 { HAL_GetNumEncoders() }
+pub unsafe fn get_num_interrupts()          -> i32 { HAL_GetNumInterrupts() }
+pub unsafe fn get_num_relay_channels()      -> i32 { HAL_GetNumRelayChannels() }
+pub unsafe fn get_num_relay_headers()       -> i32 { HAL_GetNumRelayHeaders() }
+pub unsafe fn get_num_pcm_modules()         -> i32 { HAL_GetNumPCMModules() }
+pub unsafe fn get_num_solenoid_channels()   -> i32 { HAL_GetNumSolenoidChannels() }
+pub unsafe fn get_num_pdp_modules()         -> i32 { HAL_GetNumPDPModules() }
+pub unsafe fn get_num_pdp_channels()        -> i32 { HAL_GetNumPDPChannels() }
