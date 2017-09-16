@@ -25,50 +25,62 @@ extern "C" {
     fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
 }
 
+#[inline(always)]
 pub fn initialize(port: AnalogInputHandle) -> HalResult<GyroHandle> {
     unsafe { hal_call!(ptr HAL_InitializeAnalogGyro(port)) }
 }
 
+#[inline(always)]
 pub fn setup(port: GyroHandle) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_SetupAnalogGyro(port)) }
 }
 
+#[inline(always)]
 pub fn free(port: GyroHandle) {
     unsafe { HAL_FreeAnalogGyro(port) }
 }
 
+#[inline(always)]
 pub fn set_parameters(handle: GyroHandle, volts_per_degree_per_second: f64, offset: f64, center: i32) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_SetAnalogGyroParameters(handle, volts_per_degree_per_second, offset, center)) }
 }
 
+#[inline(always)]
 pub fn set_volts_per_degree_per_second(handle: GyroHandle, vds: f64) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_SetAnalogGyroVoltsPerDegreePerSecond(handle, vds)) }
 }
 
+#[inline(always)]
 pub fn reset(handle: GyroHandle) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_ResetAnalogGyro(handle)) }
 }
 
+#[inline(always)]
 pub fn calibrate(handle: GyroHandle) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_CalibrateAnalogGyro(handle)) }
 }
 
+#[inline(always)]
 pub fn set_deadband(handle: GyroHandle, volts: f64) -> HalResult<()> {
     unsafe { hal_call!(ptr HAL_SetAnalogGyroDeadband(handle, volts)) }
 }
 
+#[inline(always)]
 pub fn get_angle(handle: GyroHandle) -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetAnalogGyroAngle(handle)) }
 }
 
+#[inline(always)]
 pub fn get_rate(handle: GyroHandle) -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetAnalogGyroRate(handle)) }
 }
 
+#[inline(always)]
 pub fn get_offset(handle: GyroHandle) -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetAnalogGyroOffset(handle)) }
 }
 
+#[inline(always)]
 pub fn get_center(handle: GyroHandle) -> HalResult<i32> {
     unsafe { hal_call!(ptr HAL_GetAnalogGyroCenter(handle)) }
 }

@@ -32,38 +32,47 @@ extern "C" {
                                         status: *mut i32);
 }
 
+#[inline(always)]
 pub unsafe fn initialize_interrupts(watcher: bool) -> HalResult<InterruptHandle> {
     hal_call!(ptr HAL_InitializeInterrupts(watcher as NativeBool))
 }
 
+#[inline(always)]
 pub unsafe fn clean_interrupts(handle: InterruptHandle) -> HalResult<()> {
     hal_call!(ptr HAL_CleanInterrupts(handle))
 }
 
+#[inline(always)]
 pub unsafe fn wait_for_interrupt(handle: InterruptHandle, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
     hal_call!(ptr HAL_WaitForInterrupt(handle, timeout, ignore_previous as NativeBool))
 }
 
+#[inline(always)]
 pub unsafe fn enable_interrupts(handle: InterruptHandle) -> HalResult<()> {
     hal_call!(ptr HAL_EnableInterrupts(handle))
 }
 
+#[inline(always)]
 pub unsafe fn disable_interrupts(handle: InterruptHandle) -> HalResult<()> {
     hal_call!(ptr HAL_DisableInterrupts(handle))
 }
 
+#[inline(always)]
 pub unsafe fn read_interrupt_rising_timestamp(handle: InterruptHandle) -> HalResult<f64> {
     hal_call!(ptr HAL_ReadInterruptRisingTimestamp(handle))
 }
 
+#[inline(always)]
 pub unsafe fn read_interrupt_falling_timestamp(handle: InterruptHandle) -> HalResult<f64> {
     hal_call!(ptr HAL_ReadInterruptFallingTimestamp(handle))
 }
 
+#[inline(always)]
 pub unsafe fn request_interrupts(handle: InterruptHandle, digital_source_handle: DigitalHandle, analog_trigger_type: AnalogTriggerType) -> HalResult<()> {
     hal_call!(ptr HAL_RequestInterrupts(handle, digital_source_handle, analog_trigger_type))
 }
 
+#[inline(never)]
 unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closure: *mut c_void) where F: Fn(u32) {
     let opt_closure = closure as *mut Option<F>;
     (*opt_closure).take().unwrap()(interrupt_asserted_mask as u32);
@@ -77,16 +86,19 @@ unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closu
 ///     println!("Handler called! {}", mask);
 /// })
 /// ```
+#[inline(always)]
 pub unsafe fn attach_interrupt_handler<F>(handle: InterruptHandle, mut handler: F) -> HalResult<()> where F: Fn(u32) {
     let extern_handler = &mut handler as *mut _ as *mut c_void;
     hal_call!(ptr HAL_AttachInterruptHandler(handle, Some(interrupt_handler_cb::<F>), extern_handler))
 }
 
+#[inline(always)]
 pub unsafe fn attach_interrupt_handler_threaded<F>(handle: InterruptHandle, mut handler: F) -> HalResult<()> where F: Fn(u32) {
     let extern_handler = &mut handler as *mut _ as *mut c_void;
     hal_call!(ptr HAL_AttachInterruptHandlerThreaded(handle, Some(interrupt_handler_cb::<F>), extern_handler))
 }
 
+#[inline(always)]
 pub unsafe fn set_interrupt_up_source_edge(handle: InterruptHandle, rising_edge: bool, falling_edge: bool) -> HalResult<()> {
     hal_call!(ptr HAL_SetInterruptUpSourceEdge(handle, rising_edge as NativeBool, falling_edge as NativeBool))
 }

@@ -24,27 +24,32 @@ pub enum AccelerometerRange {
 
 /// Set the accelerometer to active or standby mode. It must be in standby
 /// mode to change any configuration.
+#[inline(always)]
 pub fn set_accelerometer_active(active: bool) {
     unsafe { HAL_SetAccelerometerActive(active as NativeBool) }
 }
 
 /// Set the range of values that can be measured (either 2, 4, or 8 g-forces).
 /// The accelerometer should be in standby mode when this is called.
+#[inline(always)]
 pub fn set_accelerometer_range(range: AccelerometerRange) {
     unsafe { HAL_SetAccelerometerRange(range) }
 }
 
 /// Gets the acceleromenter's X (Left/right) value. Returns a value in units of 1 g-force.
+#[inline(always)]
 pub fn get_accelerometer_x() -> f64 {
     unsafe { HAL_GetAccelerometerX() }
 }
 
 /// Gets the acceleromenter's Y (Front/back) value. Returns a value in units of 1 g-force.
+#[inline(always)]
 pub fn get_accelerometer_y() -> f64 {
     unsafe { HAL_GetAccelerometerY() }
 }
 
 /// Gets the acceleromenter's Z (Top/bottom) value. Returns a value in units of 1 g-force.
+#[inline(always)]
 pub fn get_accelerometer_z() -> f64 {
     unsafe { HAL_GetAccelerometerZ() }
 }

@@ -44,89 +44,108 @@ pub struct PwmConfig {
     pub min_pwm: i32,
 }
 
-pub unsafe fn initialize(handle: PortHandle) -> HalResult<DigitalHandle> {
-    hal_call!(ptr HAL_InitializePWMPort(handle))
+#[inline(always)]
+pub fn initialize(handle: PortHandle) -> HalResult<DigitalHandle> {
+    unsafe { hal_call!(ptr HAL_InitializePWMPort(handle)) }
 }
 
-pub unsafe fn free(handle: DigitalHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_FreePWMPort(handle))
+#[inline(always)]
+pub fn free(handle: DigitalHandle) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_FreePWMPort(handle)) }
 }
 
-pub unsafe fn check_channel(channel: i32) -> bool {
-    HAL_CheckPWMChannel(channel) != 0
+#[inline(always)]
+pub fn check_channel(channel: i32) -> bool {
+    unsafe { HAL_CheckPWMChannel(channel) != 0 }
 }
 
-pub unsafe fn set_config(handle: DigitalHandle, max_pwm: f64, deadband_max_pwm: f64, center_pwm: f64, deadband_min_pwm: f64, min_pwm: f64) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMConfig(handle, max_pwm, deadband_max_pwm, center_pwm, deadband_min_pwm, min_pwm))
+#[inline(always)]
+pub fn set_config(handle: DigitalHandle, max_pwm: f64, deadband_max_pwm: f64, center_pwm: f64, deadband_min_pwm: f64, min_pwm: f64) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMConfig(handle, max_pwm, deadband_max_pwm, center_pwm, deadband_min_pwm, min_pwm)) }
 }
 
-pub unsafe fn set_config_raw(handle: DigitalHandle, cfg: PwmConfig) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMConfigRaw(handle, cfg.max_pwm, cfg.deadband_max_pwm, cfg.center_pwm, cfg.deadband_min_pwm, cfg.min_pwm))
+#[inline(always)]
+pub fn set_config_raw(handle: DigitalHandle, cfg: PwmConfig) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMConfigRaw(handle, cfg.max_pwm, cfg.deadband_max_pwm, cfg.center_pwm, cfg.deadband_min_pwm, cfg.min_pwm)) }
 }
 
-pub unsafe fn get_config_raw(handle: DigitalHandle) -> HalResult<PwmConfig> {
-    // Create a zeroed struct. Will either be filled, or an Err will be returned
-    // and cfg will be dropped
-    let mut cfg: PwmConfig = ::std::mem::zeroed();
+#[inline(always)]
+pub fn get_config_raw(handle: DigitalHandle) -> HalResult<PwmConfig> {
+    unsafe {
+        // Create a zeroed struct. Will either be filled, or an Err will be returned
+        // and cfg will be dropped
+        let mut cfg: PwmConfig = ::std::mem::zeroed();
 
-    // &mut T can be coerced to *mut T
-    hal_call!(ptr HAL_GetPWMConfigRaw(
-        handle,
-        &mut cfg.max_pwm,
-        &mut cfg.deadband_max_pwm,
-        &mut cfg.center_pwm,
-        &mut cfg.deadband_min_pwm,
-        &mut cfg.min_pwm
-    ))?;
+        // &mut T can be coerced to *mut T
+        hal_call!(ptr HAL_GetPWMConfigRaw(
+            handle,
+            &mut cfg.max_pwm,
+            &mut cfg.deadband_max_pwm,
+            &mut cfg.center_pwm,
+            &mut cfg.deadband_min_pwm,
+            &mut cfg.min_pwm
+        ))?;
 
-    Ok(cfg)
+        Ok(cfg)
+    }
 }
 
-pub unsafe fn set_eliminate_deadband(handle: DigitalHandle, eliminate_deadband: bool)
-                                  -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMEliminateDeadband(handle, eliminate_deadband as NativeBool))
+#[inline(always)]
+pub fn set_eliminate_deadband(handle: DigitalHandle, eliminate_deadband: bool) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMEliminateDeadband(handle, eliminate_deadband as NativeBool)) }
 }
 
-pub unsafe fn get_eliminate_deadband(handle: DigitalHandle) -> HalResult<bool> {
-    hal_call!(ptr HAL_GetPWMEliminateDeadband(handle)).map(|n| n != 0)
+#[inline(always)]
+pub fn get_eliminate_deadband(handle: DigitalHandle) -> HalResult<bool> {
+    unsafe { hal_call!(ptr HAL_GetPWMEliminateDeadband(handle)).map(|n| n != 0) }
 }
 
-pub unsafe fn set_raw(handle: DigitalHandle, value: i32) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMRaw(handle, value))
+#[inline(always)]
+pub fn set_raw(handle: DigitalHandle, value: i32) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMRaw(handle, value)) }
 }
 
-pub unsafe fn set_speed(handle: DigitalHandle, speed: f64) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMSpeed(handle, speed))
+#[inline(always)]
+pub fn set_speed(handle: DigitalHandle, speed: f64) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMSpeed(handle, speed)) }
 }
 
-pub unsafe fn set_position(handle: DigitalHandle, position: f64) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMPosition(handle, position))
+#[inline(always)]
+pub fn set_position(handle: DigitalHandle, position: f64) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMPosition(handle, position)) }
 }
 
-pub unsafe fn set_disabled(handle: DigitalHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMDisabled(handle))
+#[inline(always)]
+pub fn set_disabled(handle: DigitalHandle) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMDisabled(handle)) }
 }
 
-pub unsafe fn get_raw(handle: DigitalHandle) -> HalResult<i32> {
-    hal_call!(ptr HAL_GetPWMRaw(handle))
+#[inline(always)]
+pub fn get_raw(handle: DigitalHandle) -> HalResult<i32> {
+    unsafe { hal_call!(ptr HAL_GetPWMRaw(handle)) }
 }
 
-pub unsafe fn get_speed(handle: DigitalHandle) -> HalResult<f64> {
-    hal_call!(ptr HAL_GetPWMSpeed(handle))
+#[inline(always)]
+pub fn get_speed(handle: DigitalHandle) -> HalResult<f64> {
+    unsafe { hal_call!(ptr HAL_GetPWMSpeed(handle)) }
 }
 
-pub unsafe fn get_position(handle: DigitalHandle) -> HalResult<f64> {
-    hal_call!(ptr HAL_GetPWMPosition(handle))
+#[inline(always)]
+pub fn get_position(handle: DigitalHandle) -> HalResult<f64> {
+    unsafe { hal_call!(ptr HAL_GetPWMPosition(handle)) }
 }
 
-pub unsafe fn latch_zero(handle: DigitalHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_LatchPWMZero(handle))
+#[inline(always)]
+pub fn latch_zero(handle: DigitalHandle) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_LatchPWMZero(handle)) }
 }
 
-pub unsafe fn set_period_scale(handle: DigitalHandle, squelch_mask: i32) -> HalResult<()> {
-    hal_call!(ptr HAL_SetPWMPeriodScale(handle, squelch_mask))
+#[inline(always)]
+pub fn set_period_scale(handle: DigitalHandle, squelch_mask: i32) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetPWMPeriodScale(handle, squelch_mask)) }
 }
 
-pub unsafe fn get_loop_timing() -> HalResult<i32> {
-    hal_call!(ptr HAL_GetLoopTiming())
+#[inline(always)]
+pub fn get_loop_timing() -> HalResult<i32> {
+    unsafe { hal_call!(ptr HAL_GetLoopTiming()) }
 }

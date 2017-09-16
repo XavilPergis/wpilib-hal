@@ -1,3 +1,5 @@
+pub type NativeBool = i32;
+
 pub type Handle = i32;
 pub type PortHandle = Handle;
 pub type AnalogInputHandle = Handle;
@@ -13,4 +15,3 @@ pub type GyroHandle = Handle;
 pub type InterruptHandle = Handle;
 pub type NotifierHandle = Handle;
 pub type SolenoidHandle = Handle;
-pub type NativeBool = i32;
