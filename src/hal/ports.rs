@@ -6,7 +6,26 @@
 //! println!("{}", how_many_encoders);
 //! ```
 
-use ::raw::*;
+extern "C" {
+    fn HAL_GetNumAccumulators() -> i32;
+    fn HAL_GetNumAnalogTriggers() -> i32;
+    fn HAL_GetNumAnalogInputs() -> i32;
+    fn HAL_GetNumAnalogOutputs() -> i32;
+    fn HAL_GetNumCounters() -> i32;
+    fn HAL_GetNumDigitalHeaders() -> i32;
+    fn HAL_GetNumPWMHeaders() -> i32;
+    fn HAL_GetNumDigitalChannels() -> i32;
+    fn HAL_GetNumPWMChannels() -> i32;
+    fn HAL_GetNumDigitalPWMOutputs() -> i32;
+    fn HAL_GetNumEncoders() -> i32;
+    fn HAL_GetNumInterrupts() -> i32;
+    fn HAL_GetNumRelayChannels() -> i32;
+    fn HAL_GetNumRelayHeaders() -> i32;
+    fn HAL_GetNumPCMModules() -> i32;
+    fn HAL_GetNumSolenoidChannels() -> i32;
+    fn HAL_GetNumPDPModules() -> i32;
+    fn HAL_GetNumPDPChannels() -> i32;
+}
 
 #[inline(always)] pub fn get_num_accumulators()        -> i32 { unsafe { HAL_GetNumAccumulators() } }
 #[inline(always)] pub fn get_num_analog_triggers()     -> i32 { unsafe { HAL_GetNumAnalogTriggers() } }

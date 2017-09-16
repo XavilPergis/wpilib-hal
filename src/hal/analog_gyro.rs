@@ -1,6 +1,29 @@
-use ::error::*;
-use hal::handle::*;
-use ::raw::*;
+use std::os::raw::c_double;
+use hal::types::{AnalogInputHandle, GyroHandle};
+use error::*;
+
+extern "C" {
+    fn HAL_InitializeAnalogGyro(handle: AnalogInputHandle,
+                                    status: *mut i32) -> GyroHandle;
+    fn HAL_SetupAnalogGyro(handle: GyroHandle, status: *mut i32);
+    fn HAL_FreeAnalogGyro(handle: GyroHandle);
+    fn HAL_SetAnalogGyroParameters(handle: GyroHandle,
+                                       voltsPerDegreePerSecond: c_double,
+                                       offset: c_double,
+                                       center: i32, status: *mut i32);
+    fn HAL_SetAnalogGyroVoltsPerDegreePerSecond(handle: GyroHandle,
+                                                    voltsPerDegreePerSecond: c_double,
+                                                    status: *mut i32);
+    fn HAL_ResetAnalogGyro(handle: GyroHandle, status: *mut i32);
+    fn HAL_CalibrateAnalogGyro(handle: GyroHandle, status: *mut i32);
+    fn HAL_SetAnalogGyroDeadband(handle: GyroHandle,
+                                     volts: c_double,
+                                     status: *mut i32);
+    fn HAL_GetAnalogGyroAngle(handle: GyroHandle, status: *mut i32) -> c_double;
+    fn HAL_GetAnalogGyroRate(handle: GyroHandle, status: *mut i32) -> c_double;
+    fn HAL_GetAnalogGyroOffset(handle: GyroHandle, status: *mut i32) -> c_double;
+    fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
+}
 
 pub fn initialize(port: AnalogInputHandle) -> HalResult<GyroHandle> {
     unsafe { hal_call!(ptr HAL_InitializeAnalogGyro(port)) }

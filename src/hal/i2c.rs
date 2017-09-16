@@ -1,4 +1,4 @@
-use ::error::*;
+use error::*;
 
 // NOTE: all the `*const u8`s here are actually `*mut u8` but are immediately cast to a const pointer in the implementation
 extern "C" {
@@ -9,7 +9,7 @@ extern "C" {
     pub fn HAL_CloseI2C(port: I2cPort);
 }
 
-#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(i32)]
 pub enum I2cPort {
     OnBoard = 0,

@@ -1,4 +1,4 @@
-use ::error::*;
+use error::*;
 use std::os::raw::c_char;
 
 extern "C" {

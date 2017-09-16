@@ -1,32 +1,12 @@
-use ::error::*;
-use ::handle::*;
-use ::raw::*;
+use error::*;
+use types::*;
+use raw::*;
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-macro_rules! impl_convert {
-    ($a:ident, $b:ident; $($variant_a:ident <=> $variant_b:ident),*) => {
-        impl From<$a> for $b {
-            fn from(val: $a) -> $b {
-                match val {
-                    $($a::$variant_a => $b::$variant_b,)*
-                }
-            }
-        }
-
-        impl From<$b> for $a {
-            fn from(val: $b) -> $a {
-                match val {
-                    $($b::$variant_b => $a::$variant_a,)*
-                }
-            }
-        }
-    };
-}
-
 static mut HAL_INITIALIZED: bool = false;
 
-pub mod handle;
+pub mod types;
 pub mod accelerometer;
 pub mod analog_gyro;
 pub mod analog;

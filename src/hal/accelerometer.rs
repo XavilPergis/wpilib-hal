@@ -1,12 +1,12 @@
-use ::raw::*;
-use ::std::os::raw::c_double;
+use hal::types::NativeBool;
+use std::os::raw::c_double;
 
 extern "C" {
-    pub fn HAL_SetAccelerometerActive(active: HAL_Bool);
-    pub fn HAL_SetAccelerometerRange(range: AccelerometerRange);
-    pub fn HAL_GetAccelerometerX() -> c_double;
-    pub fn HAL_GetAccelerometerY() -> c_double;
-    pub fn HAL_GetAccelerometerZ() -> c_double;
+    fn HAL_SetAccelerometerActive(active: NativeBool);
+    fn HAL_SetAccelerometerRange(range: AccelerometerRange);
+    fn HAL_GetAccelerometerX() -> c_double;
+    fn HAL_GetAccelerometerY() -> c_double;
+    fn HAL_GetAccelerometerZ() -> c_double;
 }
 
 /// The range of g-force the accelerometer will output. `Max4G` means that it will
@@ -25,7 +25,7 @@ pub enum AccelerometerRange {
 /// Set the accelerometer to active or standby mode. It must be in standby
 /// mode to change any configuration.
 pub fn set_accelerometer_active(active: bool) {
-    unsafe { HAL_SetAccelerometerActive(active as HAL_Bool) }
+    unsafe { HAL_SetAccelerometerActive(active as NativeBool) }
 }
 
 /// Set the range of values that can be measured (either 2, 4, or 8 g-forces).

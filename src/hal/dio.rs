@@ -1,9 +1,29 @@
-use ::error::*;
-use hal::handle::*;
-use ::raw::*;
+use error::*;
+use hal::types::{PortHandle, DigitalHandle, DigitalPwmHandle, NativeBool};
+
+extern "C" {
+    fn HAL_InitializeDIOPort(handle: PortHandle, input: NativeBool, status: *mut i32) -> DigitalHandle;
+    fn HAL_CheckDIOChannel(channel: i32) -> NativeBool;
+    fn HAL_FreeDIOPort(handle: DigitalHandle);
+    fn HAL_AllocateDigitalPWM(status: *mut i32) -> DigitalPwmHandle;
+    fn HAL_FreeDigitalPWM(pwmGenerator: DigitalPwmHandle, status: *mut i32);
+    fn HAL_SetDigitalPWMRate(rate: ::std::os::raw::c_double, status: *mut i32);
+    fn HAL_SetDigitalPWMDutyCycle(pwmGenerator: DigitalPwmHandle, dutyCycle: ::std::os::raw::c_double, status: *mut i32);
+    fn HAL_SetDigitalPWMOutputChannel(pwmGenerator: DigitalPwmHandle, channel: i32, status: *mut i32);
+    fn HAL_SetDIO(handle: DigitalHandle, value: NativeBool, status: *mut i32);
+    fn HAL_GetDIO(handle: DigitalHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetDIODirection(handle: DigitalHandle, status: *mut i32) -> NativeBool;
+    fn HAL_Pulse(handle: DigitalHandle, pulseLength: ::std::os::raw::c_double, status: *mut i32);
+    fn HAL_IsPulsing(handle: DigitalHandle, status: *mut i32) -> NativeBool;
+    fn HAL_IsAnyPulsing(status: *mut i32) -> NativeBool;
+    fn HAL_SetFilterSelect(handle: DigitalHandle, filterIndex: i32, status: *mut i32);
+    fn HAL_GetFilterSelect(handle: DigitalHandle, status: *mut i32) -> i32;
+    fn HAL_SetFilterPeriod(filterIndex: i32, value: i64, status: *mut i32);
+    fn HAL_GetFilterPeriod(filterIndex: i32, status: *mut i32) -> i64;
+}
 
 pub fn initialize_dio_port(handle: PortHandle, input: bool) -> HalResult<DigitalHandle> {
-    unsafe { hal_call!(ptr HAL_InitializeDIOPort(handle, input as HAL_Bool)) }
+    unsafe { hal_call!(ptr HAL_InitializeDIOPort(handle, input as NativeBool)) }
 }
 
 pub fn check_dio_channel(channel: i32) -> bool {
@@ -35,7 +55,7 @@ pub fn set_digital_pwm_output_channel(pwm_generator: DigitalPwmHandle, channel: 
 }
 
 pub fn set_dio(handle: DigitalHandle, value: bool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetDIO(handle, value as HAL_Bool)) }
+    unsafe { hal_call!(ptr HAL_SetDIO(handle, value as NativeBool)) }
 }
 
 pub fn get_dio(handle: DigitalHandle) -> HalResult<bool> {

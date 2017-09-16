@@ -1,6 +1,20 @@
-use ::error::*;
-use handle::*;
-use ::raw::*;
+use error::*;
+use hal::types::{PortHandle, SolenoidHandle, NativeBool};
+
+extern "C" {
+    fn HAL_InitializeSolenoidPort(handle: PortHandle, status: *mut i32) -> SolenoidHandle;
+    fn HAL_FreeSolenoidPort(handle: SolenoidHandle);
+    fn HAL_CheckSolenoidModule(module: i32) -> NativeBool;
+    fn HAL_CheckSolenoidChannel(channel: i32) -> NativeBool;
+    fn HAL_GetSolenoid(handle: SolenoidHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetAllSolenoids(module: i32, status: *mut i32) -> i32;
+    fn HAL_SetSolenoid(handle: SolenoidHandle, value: NativeBool, status: *mut i32);
+    fn HAL_SetAllSolenoids(module: i32, state: i32, status: *mut i32);
+    fn HAL_GetPCMSolenoidBlackList(module: i32, status: *mut i32) -> i32;
+    fn HAL_GetPCMSolenoidVoltageStickyFault(module: i32, status: *mut i32) -> NativeBool;
+    fn HAL_GetPCMSolenoidVoltageFault(module: i32, status: *mut i32) -> NativeBool;
+    fn HAL_ClearAllPCMStickyFaults(module: i32, status: *mut i32);
+}
 
 pub unsafe fn initialize_port(handle: PortHandle) -> HalResult<SolenoidHandle> {
     hal_call!(ptr HAL_InitializeSolenoidPort(handle))
@@ -27,7 +41,7 @@ pub unsafe fn get_all_solenoids(module: i32) -> HalResult<i32> {
 }
 
 pub unsafe fn set(solenoid_port_handle: SolenoidHandle, value: bool) -> HalResult<()> {
-    hal_call!(ptr HAL_SetSolenoid(solenoid_port_handle, value as HAL_Bool))
+    hal_call!(ptr HAL_SetSolenoid(solenoid_port_handle, value as NativeBool))
 }
 
 pub unsafe fn set_all_solenoids(module: i32, state: i32) -> HalResult<()> {

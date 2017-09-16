@@ -1,5 +1,20 @@
-use ::error::*;
-use ::raw::*;
+use error::*;
+use hal::types::NativeBool;
+use std::os::raw::c_double;
+
+extern "C" {
+    fn HAL_InitializePDP(module: i32, status: *mut i32);
+    fn HAL_CheckPDPChannel(channel: i32) -> NativeBool;
+    fn HAL_CheckPDPModule(module: i32) -> NativeBool;
+    fn HAL_GetPDPTemperature(module: i32, status: *mut i32) -> c_double;
+    fn HAL_GetPDPVoltage(module: i32, status: *mut i32) -> c_double;
+    fn HAL_GetPDPChannelCurrent(module: i32, channel: i32, status: *mut i32) -> c_double;
+    fn HAL_GetPDPTotalCurrent(module: i32, status: *mut i32) -> c_double;
+    fn HAL_GetPDPTotalPower(module: i32, status: *mut i32) -> c_double;
+    fn HAL_GetPDPTotalEnergy(module: i32, status: *mut i32) -> c_double;
+    fn HAL_ResetPDPTotalEnergy(module: i32, status: *mut i32);
+    fn HAL_ClearPDPStickyFaults(module: i32, status: *mut i32);
+}
 
 pub unsafe fn initialize_pdp(module: i32) -> HalResult<()> {
     hal_call!(ptr HAL_InitializePDP(module))

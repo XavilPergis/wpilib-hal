@@ -1,6 +1,21 @@
-use ::error::*;
-use hal::handle::*;
-use ::raw::*;
+use error::*;
+use hal::types::{NativeBool, CompressorHandle};
+
+extern "C" {
+    fn HAL_InitializeCompressor(module: i32, status: *mut i32) -> CompressorHandle;
+    fn HAL_CheckCompressorModule(module: i32) -> NativeBool;
+    fn HAL_GetCompressor(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_SetCompressorClosedLoopControl(handle: CompressorHandle, value: NativeBool, status: *mut i32);
+    fn HAL_GetCompressorClosedLoopControl(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorPressureSwitch(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorCurrent(handle: CompressorHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    fn HAL_GetCompressorCurrentTooHighFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorCurrentTooHighStickyFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorShortedStickyFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorShortedFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorNotConnectedStickyFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+    fn HAL_GetCompressorNotConnectedFault(handle: CompressorHandle, status: *mut i32) -> NativeBool;
+}
 
 pub struct CompressorFaults {
     pub current_too_high: bool,
@@ -24,7 +39,7 @@ pub fn get(handle: CompressorHandle) -> HalResult<bool> {
 }
 
 pub fn set_closed_loop_control(handle: CompressorHandle, value: bool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetCompressorClosedLoopControl(handle, value as HAL_Bool)) }
+    unsafe { hal_call!(ptr HAL_SetCompressorClosedLoopControl(handle, value as NativeBool)) }
 }
 
 pub fn get_closed_loop_control(handle: CompressorHandle) -> HalResult<bool> {
@@ -39,7 +54,7 @@ pub fn get_current(handle: CompressorHandle) -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetCompressorCurrent(handle)) }
 }
 
-pub fn get_faults(handle: CompressorHandle) -> HalResult<CompressorFaults> {
+pub fn get_all_faults(handle: CompressorHandle) -> HalResult<CompressorFaults> {
     Ok(CompressorFaults {
         current_too_high:        get_current_too_high_fault(handle)?,
         current_too_high_sticky: get_current_too_high_sticky_fault(handle)?,

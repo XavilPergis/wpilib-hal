@@ -1,46 +1,67 @@
-use ::error::*;
-use ::raw::*;
-use handle::*;
+use error::*;
+use hal::types::{Handle, EncoderHandle, NativeBool};
 use hal::analog::AnalogTriggerType;
 
-pub type RawIndexingType = HAL_EncoderIndexingType;
-pub type RawEncodingType = HAL_EncoderEncodingType;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u32)]
 pub enum IndexingType {
-    ResetWhileHigh,
-    ResetWhileLow,
-    ResetOnFallingEdge,
-    ResetOnRisingEdge,
+    ResetWhileHigh = 0,
+    ResetWhileLow = 1,
+    ResetOnFallingEdge = 2,
+    ResetOnRisingEdge = 3,
 }
 
-impl_convert! {
-    HAL_EncoderIndexingType, IndexingType;
-    HAL_kResetWhileHigh <=> ResetWhileHigh,
-    HAL_kResetWhileLow <=> ResetWhileLow,
-    HAL_kResetOnFallingEdge <=> ResetOnFallingEdge,
-    HAL_kResetOnRisingEdge <=> ResetOnRisingEdge
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u32)]
 pub enum EncodingType {
-    Encoder1X,
-    Encoder2X,
-    Encoder4X,
+    Encoder1X = 0,
+    Encoder2X = 1,
+    Encoder4X = 2,
 }
 
-impl_convert! {
-    HAL_EncoderEncodingType, EncodingType;
-    HAL_Encoder_k1X <=> Encoder1X,
-    HAL_Encoder_k2X <=> Encoder2X,
-    HAL_Encoder_k4X <=> Encoder4X
+extern "C" {
+    pub fn HAL_InitializeEncoder(digitalSourceHandleA: Handle,
+                                 analogTriggerTypeA: AnalogTriggerType,
+                                 digitalSourceHandleB: Handle,
+                                 analogTriggerTypeB: AnalogTriggerType,
+                                 reverseDirection: NativeBool,
+                                 encodingType: EncodingType,
+                                 status: *mut i32) -> EncoderHandle;
+    pub fn HAL_FreeEncoder(encoderHandle: EncoderHandle, status: *mut i32);
+    pub fn HAL_GetEncoder(encoderHandle: EncoderHandle, status: *mut i32) -> i32;
+    pub fn HAL_GetEncoderRaw(encoderHandle: EncoderHandle, status: *mut i32) -> i32;
+    pub fn HAL_GetEncoderEncodingScale(encoderHandle: EncoderHandle, status: *mut i32) -> i32;
+    pub fn HAL_ResetEncoder(encoderHandle: EncoderHandle, status: *mut i32);
+    pub fn HAL_GetEncoderPeriod(encoderHandle: EncoderHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    pub fn HAL_SetEncoderMaxPeriod(encoderHandle: EncoderHandle, maxPeriod: ::std::os::raw::c_double, status: *mut i32);
+    pub fn HAL_GetEncoderStopped(encoderHandle: EncoderHandle, status: *mut i32) -> NativeBool;
+    pub fn HAL_GetEncoderDirection(encoderHandle: EncoderHandle, status: *mut i32) -> NativeBool;
+    pub fn HAL_GetEncoderDistance(encoderHandle: EncoderHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    pub fn HAL_GetEncoderRate(encoderHandle: EncoderHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    pub fn HAL_SetEncoderMinRate(encoderHandle: EncoderHandle, minRate: ::std::os::raw::c_double, status: *mut i32);
+    pub fn HAL_SetEncoderDistancePerPulse(encoderHandle: EncoderHandle,
+                                          distancePerPulse:
+                                              ::std::os::raw::c_double,
+                                          status: *mut i32);
+    pub fn HAL_SetEncoderReverseDirection(encoderHandle: EncoderHandle, reverseDirection: NativeBool, status: *mut i32);
+    pub fn HAL_SetEncoderSamplesToAverage(encoderHandle: EncoderHandle, samplesToAverage: i32, status: *mut i32);
+    pub fn HAL_GetEncoderSamplesToAverage(encoderHandle: EncoderHandle, status: *mut i32) -> i32;
+    pub fn HAL_SetEncoderIndexSource(encoderHandle: EncoderHandle,
+                                     digitalSourceHandle: Handle,
+                                     analogTriggerType: AnalogTriggerType,
+                                     type_: IndexingType,
+                                     status: *mut i32);
+    pub fn HAL_GetEncoderFPGAIndex(encoderHandle: EncoderHandle, status: *mut i32) -> i32;
+    pub fn HAL_GetEncoderDecodingScaleFactor(encoderHandle: EncoderHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    pub fn HAL_GetEncoderDistancePerPulse(encoderHandle: EncoderHandle, status: *mut i32) -> ::std::os::raw::c_double;
+    pub fn HAL_GetEncodingType(encoderHandle: EncoderHandle, status: *mut i32) -> EncodingType;
 }
 
 pub unsafe fn initialize(source_handle_a: Handle, trigger_type_a: AnalogTriggerType,
                   source_handle_b: Handle, trigger_type_b: AnalogTriggerType,
                   reverse_direction: bool, encoding_type: EncodingType)
                   -> HalResult<EncoderHandle> {
-    hal_call!(ptr HAL_InitializeEncoder(source_handle_a, trigger_type_a.into(), source_handle_b, trigger_type_b.into(), reverse_direction as HAL_Bool, encoding_type.into()))
+    hal_call!(ptr HAL_InitializeEncoder(source_handle_a, trigger_type_a, source_handle_b, trigger_type_b, reverse_direction as NativeBool, encoding_type))
 }
 
 pub unsafe fn free(handle: EncoderHandle) -> HalResult<()> {
@@ -95,7 +116,7 @@ pub unsafe fn set_distance_per_pulse(handle: EncoderHandle, distance_per_pulse: 
     hal_call!(ptr HAL_SetEncoderDistancePerPulse(handle, distance_per_pulse))
 }
 
-pub unsafe fn set_reverse_direction(handle: EncoderHandle, reverse: HAL_Bool) -> HalResult<()> {
+pub unsafe fn set_reverse_direction(handle: EncoderHandle, reverse: NativeBool) -> HalResult<()> {
     hal_call!(ptr HAL_SetEncoderReverseDirection(handle, reverse))
 }
 
@@ -108,7 +129,7 @@ pub unsafe fn get_samples_to_average(handle: EncoderHandle) -> HalResult<i32> {
 }
 
 pub unsafe fn set_index_source(handle: EncoderHandle, digital_source_handle: Handle, trigger_type: AnalogTriggerType, indexing_type: IndexingType) -> HalResult<()> {
-    hal_call!(ptr HAL_SetEncoderIndexSource(handle, digital_source_handle, trigger_type.into(), indexing_type.into()))
+    hal_call!(ptr HAL_SetEncoderIndexSource(handle, digital_source_handle, trigger_type, indexing_type))
 }
 
 pub unsafe fn get_fpga_index(handle: EncoderHandle) -> HalResult<i32> {
@@ -124,5 +145,5 @@ pub unsafe fn get_distance_per_pulse(handle: EncoderHandle) -> HalResult<f64> {
 }
 
 pub unsafe fn get_encoding_type(handle: EncoderHandle) -> HalResult<EncodingType> {
-    hal_call!(ptr HAL_GetEncoderEncodingType(handle)).map(Into::into)
+    hal_call!(ptr HAL_GetEncodingType(handle)).map(Into::into)
 }

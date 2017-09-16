@@ -1,5 +1,23 @@
-use ::error::*;
-use ::raw::*;
+use std::os::raw::c_double;
+use hal::types::NativeBool;
+use error::*;
+
+extern "C" {
+    fn HAL_GetVinVoltage(status: *mut i32) -> c_double;
+    fn HAL_GetVinCurrent(status: *mut i32) -> c_double;
+    fn HAL_GetUserVoltage6V(status: *mut i32) -> c_double;
+    fn HAL_GetUserCurrent6V(status: *mut i32) -> c_double;
+    fn HAL_GetUserActive6V(status: *mut i32) -> NativeBool;
+    fn HAL_GetUserCurrentFaults6V(status: *mut i32) -> i32;
+    fn HAL_GetUserVoltage5V(status: *mut i32) -> c_double;
+    fn HAL_GetUserCurrent5V(status: *mut i32) -> c_double;
+    fn HAL_GetUserActive5V(status: *mut i32) -> NativeBool;
+    fn HAL_GetUserCurrentFaults5V(status: *mut i32) -> i32;
+    fn HAL_GetUserVoltage3V3(status: *mut i32) -> c_double;
+    fn HAL_GetUserCurrent3V3(status: *mut i32) -> c_double;
+    fn HAL_GetUserActive3V3(status: *mut i32) -> NativeBool;
+    fn HAL_GetUserCurrentFaults3V3(status: *mut i32) -> i32;
+}
 
 pub fn get_vin_voltage() -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetVinVoltage()) }
