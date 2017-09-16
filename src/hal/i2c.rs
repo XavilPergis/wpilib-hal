@@ -1,51 +1,37 @@
 use ::error::*;
-use ::raw::*;
-use halio::RobotIoPort;
 
-lazy_static! {
-    static ref INITIALIZED_I2C_PORTS: Vec<i32> = Vec::new();
+// NOTE: all the `*const u8`s here are actually `*mut u8` but are immediately cast to a const pointer in the implementation
+extern "C" {
+    pub fn HAL_InitializeI2C(port: I2cPort, status: *mut i32);
+    pub fn HAL_TransactionI2C(port: I2cPort, deviceAddress: i32, dataToSend: *const u8, sendSize: i32, dataReceived: *mut u8, receiveSize: i32) -> i32;
+    pub fn HAL_WriteI2C(port: I2cPort, deviceAddress: i32, dataToSend: *const u8, sendSize: i32) -> i32;
+    pub fn HAL_ReadI2C(port: I2cPort, deviceAddress: i32, buffer: *mut u8, count: i32) -> i32;
+    pub fn HAL_CloseI2C(port: I2cPort);
 }
 
-/// Which port the I2C device is on
 #[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[repr(i32)]
 pub enum I2cPort {
-    OnBoard,
-    MXP,
+    OnBoard = 0,
+    MXP = 1,
 }
 
-impl I2cPort {
-    /// Get the integer representation of the port
-    pub fn get_port(&self) -> i32 {
-        match *self {
-            I2cPort::OnBoard => 0,
-            I2cPort::MXP => 1,
-        }
-    }
+pub fn initialize(port: I2cPort) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_InitializeI2C(port)) }
 }
 
-pub unsafe fn initialize(port: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_InitializeI2C(port) ]
+pub fn transaction(port: I2cPort, address: i32, send_buffer: &[u8], recv_buffer: &mut [u8]) -> i32 {
+    unsafe { HAL_TransactionI2C(port, address, send_buffer.as_ptr(), send_buffer.len() as i32, recv_buffer.as_mut_ptr(), recv_buffer.len() as i32) }
 }
 
-// TODO
-pub unsafe fn transaction(io_port: RobotIoPort, send_buffer: &[u8], send_size: i32, recv_buffer: &mut [u8], recv_size: i32) -> HalResult<i32> {
-    let (port, address) = io_port.as_i2c()?;
-    Ok(HAL_TransactionI2C(port, address, send_buffer.as_ptr() as *mut u8, send_size, recv_buffer.as_mut_ptr(), recv_size))
+pub fn write(port: I2cPort, address: i32, buffer: &[u8]) -> i32 {
+    unsafe { HAL_WriteI2C(port, address, buffer.as_ptr(), buffer.len() as i32) }
 }
 
-/// Write a buffer to the I2C
-pub unsafe fn write(io_port: RobotIoPort, data_to_send: &[u8], send_size: i32) -> HalResult<i32> {
-    let (port, address) = io_port.as_i2c()?;
-    Ok(HAL_WriteI2C(port, address, data_to_send.as_ptr() as *mut u8, send_size))
+pub fn read(port: I2cPort, address: i32, buffer: &mut [u8]) -> i32 {
+    unsafe { HAL_ReadI2C(port, address, buffer.as_mut_ptr(), buffer.len() as i32) }
 }
 
-/// Read a buffer of data from the I2C
-pub unsafe fn read(io_port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
-    let (port, address) = io_port.as_i2c()?;
-    Ok(HAL_ReadI2C(port, address, buffer.as_mut_ptr(), count))
-}
-
-/// Close an I2C interface
-pub unsafe fn close(io_port: RobotIoPort) -> HalResult<()> {
-    Ok(HAL_CloseI2C(io_port.as_i2c()?.0))
+pub fn close(port: I2cPort) {
+    unsafe { HAL_CloseI2C(port) }
 }

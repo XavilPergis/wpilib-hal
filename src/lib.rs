@@ -1,7 +1,7 @@
 //! This is a highly experimental crate providing bindings to WPILIB's HAL.
 //! This crate is not affiliated with FIRST, FRC, or National Instruments in
 //! any way
-#![feature(str_escape, custom_attribute)]
+#![feature(custom_attribute)]
 
 // Enable clippy linting
 #![cfg_attr(feature = "clippy", feature(plugin))]
@@ -12,8 +12,6 @@
 #![cfg_attr(debug_assertions, allow(missing_docs))]
 #![allow(dead_code)]
 
-#[macro_use]
-extern crate lazy_static;
 extern crate time;
 
 /// Contains aggregate error types and macros for calling FFI functions

@@ -29,7 +29,6 @@ macro_rules! hal_call {
 }
 
 /// An error as emitted by WPILib
-#[allow(missing_docs)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum FfiError {
     SampleRateTooHigh,

@@ -9,11 +9,11 @@ use std::ops::Index;
 
 use time::Duration;
 
-#[allow(missing_docs)] pub type RawControlWord = HAL_ControlWord;
-#[allow(missing_docs)] pub type RawJoystickAxes = HAL_JoystickAxes;
-#[allow(missing_docs)] pub type RawJoystickPovs = HAL_JoystickPOVs;
-#[allow(missing_docs)] pub type RawJoystickButtons = HAL_JoystickButtons;
-#[allow(missing_docs)] pub type RawJoystickDescriptor = HAL_JoystickDescriptor;
+pub type RawControlWord = HAL_ControlWord;
+pub type RawJoystickAxes = HAL_JoystickAxes;
+pub type RawJoystickPovs = HAL_JoystickPOVs;
+pub type RawJoystickButtons = HAL_JoystickButtons;
+pub type RawJoystickDescriptor = HAL_JoystickDescriptor;
 
 /// The maximum amount of axes that a controller can have. Realistically, this
 /// is 3 or 4.
@@ -110,7 +110,6 @@ impl From<RawJoystickAxes> for JoystickAxes {
     }
 }
 
-///
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct JoystickPovs {
     /// Turns out, each element is actually the angle of the POV in degrees.
@@ -182,14 +181,9 @@ pub struct JoystickDescriptor {
 
 impl From<RawJoystickDescriptor> for JoystickDescriptor {
     fn from(raw_descriptor: RawJoystickDescriptor) -> JoystickDescriptor {
+        use std::ffi::CStr;
         JoystickDescriptor {
-            // FIXME: Does this even work?
-            name: String::from_utf8_lossy(raw_descriptor.name
-                    .iter()
-                    .map(|x| *x as u8)
-                    .collect::<Vec<u8>>()
-                    .as_slice())
-                .escape_default(),
+            name: unsafe { CStr::from_ptr(raw_descriptor.name.as_ptr()).to_string_lossy().to_string() },
             is_xbox: raw_descriptor.isXbox != 0,
             stick_type: JoystickType::from(raw_descriptor.type_ as i32),
             button_count: raw_descriptor.buttonCount,
@@ -204,16 +198,17 @@ impl From<RawJoystickDescriptor> for JoystickDescriptor {
 /// or an invalid station.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum AllianceStation {
-    /// Red alliance station
-    Red(u8),
-    /// Blue alliance station
-    Blue(u8)
+    Red1,
+    Red2,
+    Red3,
+    Blue1,
+    Blue2,
+    Blue3,
 }
 
-/// TODO: Figure out what a joystick type actually is
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum JoystickType {
-    /// An unknown type of joystick. TODO: What is this?
+    // An unknown type of joystick. TODO: What is this?
     Unknown(i32),
 }
 
@@ -243,13 +238,13 @@ pub enum UserProgramMode {
 
 // TODO: What is this?
 pub unsafe fn set_error_data(errors: &str, errors_length: i32, wait_ms: i32) -> HalResult<()> {
-    hal_call![ ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms) ]
+    hal_call!(ret HAL_SetErrorData(CString::new(errors).map_err(HalError::from)?.as_ptr(), errors_length, wait_ms))
 }
 
 /// Gets a joystick's descriptor from the driver station
 pub unsafe fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
     let mut descriptor = mem::zeroed();
-    hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor as *mut RawJoystickDescriptor))?;
+    hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor))?;
 
     Ok(JoystickDescriptor::from(descriptor))
 }
@@ -259,7 +254,7 @@ pub unsafe fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDe
 /// be somewhere in a range of values.
 pub unsafe fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
     let mut raw_axes = mem::zeroed();
-    hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes as *mut RawJoystickAxes))?;
+    hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut raw_axes))?;
 
     Ok(JoystickAxes::from(raw_axes))
 }
@@ -267,7 +262,7 @@ pub unsafe fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
 /// Gets the state of all the POVs on the joystick.
 pub unsafe fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
     let mut raw_povs = mem::zeroed();
-    hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs as *mut RawJoystickPovs))?;
+    hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut raw_povs))?;
 
     Ok(JoystickPovs::from(raw_povs))
 }
@@ -275,7 +270,7 @@ pub unsafe fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
 /// Gets what buttons are pressed on a joystick
 pub unsafe fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
     let mut raw_buttons: RawJoystickButtons = mem::zeroed();
-    hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons as *mut RawJoystickButtons))?;
+    hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut raw_buttons))?;
 
     Ok(JoystickButtons::from(raw_buttons))
 }
@@ -376,12 +371,12 @@ pub unsafe fn get_alliance_station() -> HalResult<AllianceStation> {
     use raw::HAL_AllianceStationID;
 
     Ok(match station_id {
-        HAL_AllianceStationID::HAL_AllianceStationID_kRed1 => AllianceStation::Red(1),
-        HAL_AllianceStationID::HAL_AllianceStationID_kRed2 => AllianceStation::Red(2),
-        HAL_AllianceStationID::HAL_AllianceStationID_kRed3 => AllianceStation::Red(3),
-        HAL_AllianceStationID::HAL_AllianceStationID_kBlue1 => AllianceStation::Blue(1),
-        HAL_AllianceStationID::HAL_AllianceStationID_kBlue2 => AllianceStation::Blue(2),
-        HAL_AllianceStationID::HAL_AllianceStationID_kBlue3 => AllianceStation::Blue(3),
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed1 => AllianceStation::Red1,
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed2 => AllianceStation::Red2,
+        HAL_AllianceStationID::HAL_AllianceStationID_kRed3 => AllianceStation::Red3,
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue1 => AllianceStation::Blue1,
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue2 => AllianceStation::Blue2,
+        HAL_AllianceStationID::HAL_AllianceStationID_kBlue3 => AllianceStation::Blue3,
     })
 }
 
@@ -390,35 +385,30 @@ pub unsafe fn get_alliance_station() -> HalResult<AllianceStation> {
 /// Since this is not the canonical match time, it cannot be used to dispute
 /// times or garuntee
 /// that a task completes before the match runs out.
-pub unsafe fn get_match_time_approx() -> HalResult<Duration> {
-    let time = hal_call![ ptr HAL_GetMatchTime() ]?;
+pub fn get_match_time_approx() -> HalResult<Duration> {
+    let time = unsafe { hal_call!(ptr HAL_GetMatchTime())? };
 
     // TODO: What the hell are the units that are returned!? Probably seconds...
     let time_ns = (time * 1_000_000_000f64) as i64;
     Ok(Duration::nanoseconds(time_ns))
 }
 
-#[allow(missing_docs)]
-pub unsafe fn observe_user_program_starting() {
-    HAL_ObserveUserProgramStarting()
+pub fn observe_user_program_starting() {
+    unsafe { HAL_ObserveUserProgramStarting() }
 }
 
-#[allow(missing_docs)]
-pub unsafe fn observe_user_program_disabled() {
-    HAL_ObserveUserProgramDisabled()
+pub fn observe_user_program_disabled() {
+    unsafe { HAL_ObserveUserProgramDisabled() }
 }
 
-#[allow(missing_docs)]
-pub unsafe fn observe_user_program_autonomous() {
-    HAL_ObserveUserProgramAutonomous()
+pub fn observe_user_program_autonomous() {
+    unsafe { HAL_ObserveUserProgramAutonomous() }
 }
 
-#[allow(missing_docs)]
-pub unsafe fn observe_user_program_teleop() {
-    HAL_ObserveUserProgramTeleop()
+pub fn observe_user_program_teleop() {
+    unsafe { HAL_ObserveUserProgramTeleop() }
 }
 
-#[allow(missing_docs)]
-pub unsafe fn observe_user_program_test() {
-    HAL_ObserveUserProgramTest()
+pub fn observe_user_program_test() {
+    unsafe { HAL_ObserveUserProgramTest() }
 }

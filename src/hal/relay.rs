@@ -1,14 +1,9 @@
 use ::error::*;
-use hal::handle::*;
 use ::raw::*;
+use hal::handle::*;
 
-// FIXME
 pub unsafe fn initialize(handle: PortHandle, fwd: bool) -> HalResult<RelayHandle> {
-    if self::check_channel(handle) {
-        hal_call![ ptr HAL_InitializeRelayPort(handle, fwd as HAL_Bool) ]
-    } else {
-        Err(HalError::BadChannelType)
-    }
+    hal_call!(ptr HAL_InitializeRelayPort(handle, fwd as HAL_Bool))
 }
 
 pub unsafe fn free(handle: RelayHandle) {
@@ -20,9 +15,9 @@ pub unsafe fn check_channel(channel: i32) -> bool {
 }
 
 pub unsafe fn set_active(handle: RelayHandle, on: bool) -> HalResult<()> {
-    hal_call![ ptr HAL_SetRelay(handle, on as HAL_Bool) ]
+    hal_call!(ptr HAL_SetRelay(handle, on as HAL_Bool))
 }
 
 pub unsafe fn get_active(handle: RelayHandle) -> HalResult<bool> {
-    hal_call![ ptr HAL_GetRelay(handle) ].map(|n| n != 0)
+    hal_call!(ptr HAL_GetRelay(handle)).map(|n| n != 0)
 }

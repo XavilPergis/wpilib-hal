@@ -1,141 +1,160 @@
 use ::error::*;
-use ::raw::*;
-use halio::RobotIoPort;
+use ::raw::HAL_Bool;
 
-/// Which port the SPI is on
+extern "C" {
+    pub fn HAL_InitializeSPI(port: SpiPort, status: *mut i32);
+    pub fn HAL_TransactionSPI(port: SpiPort, dataToSend: *const u8,
+                              dataReceived: *mut u8, size: i32) -> i32;
+    pub fn HAL_WriteSPI(port: SpiPort, dataToSend: *const u8, sendSize: i32) -> i32;
+    pub fn HAL_ReadSPI(port: SpiPort, buffer: *mut u8, count: i32) -> i32;
+    pub fn HAL_CloseSPI(port: SpiPort);
+    pub fn HAL_SetSPISpeed(port: SpiPort, speed: i32);
+    pub fn HAL_SetSPIOpts(port: SpiPort, msbFirst: HAL_Bool,
+                          sampleOnTrailing: HAL_Bool, clkIdleHigh: HAL_Bool);
+    pub fn HAL_SetSPIChipSelectActiveHigh(port: SpiPort, status: *mut i32);
+    pub fn HAL_SetSPIChipSelectActiveLow(port: SpiPort, status: *mut i32);
+    pub fn HAL_GetSPIHandle(port: SpiPort) -> i32;
+    pub fn HAL_SetSPIHandle(port: SpiPort, handle: i32);
+    pub fn HAL_InitSPIAccumulator(port: SpiPort, period: i32, cmd: i32,
+                                  xferSize: i32, validMask: i32,
+                                  validValue: i32, dataShift: i32,
+                                  dataSize: i32, isSigned: HAL_Bool,
+                                  bigEndian: HAL_Bool, status: *mut i32);
+    pub fn HAL_FreeSPIAccumulator(port: SpiPort, status: *mut i32);
+    pub fn HAL_ResetSPIAccumulator(port: SpiPort, status: *mut i32);
+    pub fn HAL_SetSPIAccumulatorCenter(port: SpiPort, center: i32,
+                                       status: *mut i32);
+    pub fn HAL_SetSPIAccumulatorDeadband(port: SpiPort, deadband: i32,
+                                         status: *mut i32);
+    pub fn HAL_GetSPIAccumulatorLastValue(port: SpiPort, status: *mut i32) -> i32;
+    pub fn HAL_GetSPIAccumulatorValue(port: SpiPort, status: *mut i32) -> i64;
+    pub fn HAL_GetSPIAccumulatorCount(port: SpiPort, status: *mut i32) -> i64;
+    pub fn HAL_GetSPIAccumulatorAverage(port: SpiPort, status: *mut i32)
+     -> ::std::os::raw::c_double;
+    pub fn HAL_GetSPIAccumulatorOutput(port: SpiPort, value: *mut i64,
+                                       count: *mut i64, status: *mut i32);
+}
+
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(i32)]
 pub enum SpiPort {
-    CS0,
+    CS0 = 0,
     CS1,
     CS2,
     CS3,
     MXP,
-    Unknown(i32),
-}
-
-impl SpiPort {
-    pub fn get_port(&self) -> i32 {
-        match *self {
-            SpiPort::CS0 => 0,
-            SpiPort::CS1 => 1,
-            SpiPort::CS2 => 2,
-            SpiPort::CS3 => 3,
-            SpiPort::MXP => 4,
-            SpiPort::Unknown(k) => k,
-        }
-    }
-}
-
-impl From<i32> for SpiPort {
-    fn from(i: i32) -> SpiPort {
-        match i {
-            0 => SpiPort::CS0,
-            1 => SpiPort::CS1,
-            2 => SpiPort::CS2,
-            3 => SpiPort::CS3,
-            4 => SpiPort::MXP,
-            k => SpiPort::Unknown(k),
-        }
-    }
 }
 
 pub unsafe fn initialize(port: SpiPort) -> HalResult<()> {
-    hal_call![ ptr HAL_InitializeSPI(port.get_port()) ]
+    hal_call!(ptr HAL_InitializeSPI(port))
 }
 
-pub unsafe fn transaction(port: i32, send_buffer: &[u8], recv_buffer: &mut [u8], size: i32) -> i32 {
-    HAL_TransactionSPI(port, send_buffer.as_ptr() as *mut u8, recv_buffer.as_mut_ptr(), size)
+// NOTE: size must be in the range [0,7]
+pub unsafe fn transaction(port: SpiPort, send_buffer: &[u8], recv_buffer: &mut [u8], size: i32) -> i32 {
+    HAL_TransactionSPI(port, send_buffer.as_ptr(), recv_buffer.as_mut_ptr(), size)
 }
 
-pub unsafe fn write(port: RobotIoPort, buffer: &[u8], send_size: i32) -> HalResult<i32> {
-    Ok(HAL_WriteSPI(port.as_spi()?.get_port(), buffer.as_ptr() as *mut u8, send_size))
+pub fn write(port: SpiPort, buffer: &[u8]) -> i32 {
+    unsafe { HAL_WriteSPI(port, buffer.as_ptr(), buffer.len() as i32) }
 }
 
-pub unsafe fn read(port: RobotIoPort, buffer: &mut [u8], count: i32) -> HalResult<i32> {
-    Ok(HAL_ReadSPI(port.as_spi()?.get_port(), buffer.as_mut_ptr(), count))
+pub fn read(port: SpiPort, buffer: &mut [u8]) -> i32 {
+    unsafe { HAL_ReadSPI(port, buffer.as_mut_ptr(), buffer.len() as i32) }
 }
 
-pub unsafe fn close(port: RobotIoPort) -> HalResult<()> {
-    Ok(HAL_CloseSPI(port.as_spi()?.get_port()))
+pub unsafe fn close(port: SpiPort) {
+    HAL_CloseSPI(port)
 }
 
 pub unsafe fn set_speed(port: SpiPort, speed: i32) {
-    HAL_SetSPISpeed(port.get_port(), speed)
+    HAL_SetSPISpeed(port, speed)
 }
 
 pub unsafe fn set_opts(port: SpiPort, msb_first: bool, sample_on_trailing: bool, clock_idle_high: bool) {
-    HAL_SetSPIOpts(port.get_port(),
+    HAL_SetSPIOpts(port,
                    msb_first as HAL_Bool,
                    sample_on_trailing as HAL_Bool,
                    clock_idle_high as HAL_Bool)
 }
 
 pub unsafe fn set_chip_select_active_high(port: SpiPort) -> HalResult<()> {
-    hal_call![ ptr HAL_SetSPIChipSelectActiveHigh(port.get_port()) ]
+    hal_call!(ptr HAL_SetSPIChipSelectActiveHigh(port))
 }
 
 pub unsafe fn set_chip_select_active_low(port: SpiPort) -> HalResult<()> {
-    hal_call![ ptr HAL_SetSPIChipSelectActiveLow(port.get_port()) ]
+    hal_call!(ptr HAL_SetSPIChipSelectActiveLow(port))
 }
 
 pub unsafe fn get_handle(port: SpiPort) -> i32 {
-    HAL_GetSPIHandle(port.get_port())
+    HAL_GetSPIHandle(port)
 }
 
 pub unsafe fn set_handle(port: SpiPort, handle: i32) {
-    HAL_SetSPIHandle(port.get_port(), handle)
+    HAL_SetSPIHandle(port, handle)
 }
 
-/// Options for an SPI Accumulator
-#[derive(Debug)]
-pub struct SpiAccumulatorOptions {
-    period: i32,
-    cmd: i32,
-    transfer_size: i32,
-    valid_mask: i32,
-    valid_value: i32,
-    data_shift: i32,
-    data_size: i32,
-    is_signed: bool,
-    big_endian: bool,
+pub unsafe fn init_accumulator(port: SpiPort,
+                               period: i32, 
+                               cmd: i32,
+                               transfer_size: i32,
+                               valid_mask: i32,
+                               valid_value: i32,
+                               data_shift: i32,
+                               data_size: i32,
+                               is_signed: bool, 
+                               big_endian: bool)
+                               -> HalResult<()> {
+    hal_call!(ptr HAL_InitSPIAccumulator(port, 
+              period, 
+              cmd, 
+              transfer_size, 
+              valid_mask, 
+              valid_value, 
+              data_shift, 
+              data_size, 
+              is_signed as HAL_Bool, 
+              big_endian as HAL_Bool))
 }
 
-pub unsafe fn init_accumulator(port: SpiPort, opts: SpiAccumulatorOptions) -> HalResult<()> {
-    hal_call![ ptr HAL_InitSPIAccumulator(port.get_port(), opts.period, opts.cmd, opts.transfer_size, opts.valid_mask, opts.valid_value, opts.data_shift, opts.data_size, opts.is_signed as HAL_Bool, opts.big_endian as HAL_Bool) ]
+pub fn free_accumulator(port: SpiPort) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_FreeSPIAccumulator(port)) }
 }
 
-pub unsafe fn free_accumulator(port: SpiPort) -> HalResult<()> {
-    hal_call![ ptr HAL_FreeSPIAccumulator(port.get_port()) ]
+pub fn reset_accumulator(port: SpiPort) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_ResetSPIAccumulator(port)) }
 }
 
-pub unsafe fn reset_accumulator(port: SpiPort) -> HalResult<()> {
-    hal_call![ ptr HAL_ResetSPIAccumulator(port.get_port()) ]
+pub fn set_accumulator_center(port: SpiPort, center: i32) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetSPIAccumulatorCenter(port, center)) }
 }
 
-pub unsafe fn set_accumulator_center(port: SpiPort, center: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetSPIAccumulatorCenter(port.get_port(), center) ]
+pub fn set_accumulator_deadband(port: SpiPort, deadband: i32) -> HalResult<()> {
+    unsafe { hal_call!(ptr HAL_SetSPIAccumulatorDeadband(port, deadband)) }
 }
 
-pub unsafe fn set_accumulator_deadband(port: SpiPort, deadband: i32) -> HalResult<()> {
-    hal_call![ ptr HAL_SetSPIAccumulatorDeadband(port.get_port(), deadband) ]
+pub fn hal_get_accumulator_last_value(port: SpiPort) -> HalResult<i32> {
+    unsafe { hal_call!(ptr HAL_GetSPIAccumulatorLastValue(port)) }
 }
 
-pub unsafe fn hal_get_accumulator_last_value(port: SpiPort) -> HalResult<i32> {
-    hal_call![ ptr HAL_GetSPIAccumulatorLastValue(port.get_port()) ]
+pub fn hal_get_accumulator_value(port: SpiPort) -> HalResult<i64> {
+    unsafe { hal_call!(ptr HAL_GetSPIAccumulatorValue(port)) }
 }
 
-pub unsafe fn hal_get_accumulator_value(port: SpiPort) -> HalResult<i64> {
-    hal_call![ ptr HAL_GetSPIAccumulatorValue(port.get_port()) ]
+pub fn hal_get_accumulator_count(port: SpiPort) -> HalResult<i64> {
+    unsafe { hal_call!(ptr HAL_GetSPIAccumulatorCount(port)) }
 }
 
-pub unsafe fn hal_get_accumulator_count(port: SpiPort) -> HalResult<i64> {
-    hal_call![ ptr HAL_GetSPIAccumulatorCount(port.get_port()) ]
+pub fn hal_get_accumulator_average(port: SpiPort) -> HalResult<f64> {
+    unsafe { hal_call!(ptr HAL_GetSPIAccumulatorAverage(port)) }
 }
 
-pub unsafe fn hal_get_accumulator_average(port: SpiPort) -> HalResult<f64> {
-    hal_call![ ptr HAL_GetSPIAccumulatorAverage(port.get_port()) ]
-}
-
-pub unsafe fn get_accumulator_output(port: SpiPort, mut value: i64, mut count: i64) -> HalResult<()> {
-    hal_call![ ptr HAL_GetSPIAccumulatorOutput(port.get_port(), &mut value, &mut count) ]
+/// value, count
+pub fn get_accumulator_output(port: SpiPort) -> HalResult<(i64, i64)> {
+    unsafe {
+        let mut value = 0;
+        let mut count = 0;
+        hal_call!(ptr HAL_GetSPIAccumulatorOutput(port, &mut value, &mut count))?;
+        Ok((value, count))
+    }
 }

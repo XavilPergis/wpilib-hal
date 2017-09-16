@@ -4,3 +4,6 @@ Cargo.lock
 
 # Ignore the bindings; those should be generated at build-time
 src/raw.rs
+
+# Ignore auto-generated rustfmt `.rs.fmt` files
+**.rs.fmt
