@@ -26,30 +26,30 @@ pub mod serial;
 pub mod solenoid;
 pub mod spi;
 
-pub type RawRuntimeType = HAL_RuntimeType;
-
-/// Which environment the robot code is running on.
+#[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum RuntimeType {
-    /// Running in an Athena environment
-    Native,
-    /// Running on a mock environment
-    Mock
+    Native = 0,
+    Mock = 1,
 }
 
-impl From<RawRuntimeType> for RuntimeType {
-    fn from(raw: RawRuntimeType) -> Self {
-        match raw {
-            HAL_RuntimeType::HAL_Athena => RuntimeType::Native,
-            HAL_RuntimeType::HAL_Mock => RuntimeType::Mock,
-        }
-    }
+extern "C" {
+    pub fn HAL_GetErrorMessage(code: i32) -> *const c_char;
+    pub fn HAL_GetFPGAVersion(status: *mut i32) -> i32;
+    pub fn HAL_GetFPGARevision(status: *mut i32) -> i64;
+    pub fn HAL_GetRuntimeType() -> RuntimeType;
+    pub fn HAL_GetFPGAButton(status: *mut i32) -> NativeBool;
+    pub fn HAL_GetSystemActive(status: *mut i32) -> NativeBool;
+    pub fn HAL_GetBrownedOut(status: *mut i32) -> NativeBool;
+    pub fn HAL_BaseInitialize(status: *mut i32);
+    pub fn HAL_GetPort(channel: i32) -> PortHandle;
+    pub fn HAL_GetPortWithModule(module: i32, channel: i32) -> PortHandle;
+    pub fn HAL_GetFPGATime(status: *mut i32) -> u64;
+    pub fn HAL_Initialize(mode: i32) -> i32;
+    pub fn HAL_Report(resource: i32, instanceNumber: i32, context: i32, feature: *const c_char) -> i64;
 }
 
-
-// I think this was in HAL/Constants.h?
-/// Gets how many clock ticks occur per microsecond
-pub fn get_system_clock_ticks_per_microsecond() -> i32 {
+pub fn system_clock_ticks_per_microsecond() -> i32 {
     unsafe { HAL_GetSystemClockTicksPerMicrosecond() }
 }
 
@@ -67,7 +67,7 @@ pub fn get_fpga_revision() -> HalResult<i64> {
 }
 
 pub fn get_runtime_type() -> RuntimeType {
-    unsafe { RuntimeType::from(HAL_GetRuntimeType()) }
+    unsafe { HAL_GetRuntimeType() }
 }
 
 pub fn get_fpga_button() -> HalResult<bool> {
@@ -96,18 +96,15 @@ pub fn get_port_with_module(module: i32, channel: i32) -> PortHandle {
 }
 
 pub fn get_fpga_time() -> HalResult<u64> {
-    unsafe {hal_call!(ptr HAL_GetFPGATime()) }
+    unsafe { hal_call!(ptr HAL_GetFPGATime()) }
 }
 
-/// Initialize the HAL.
-/// Must not be called from separate threads at the same time (access of a static mut)
 pub unsafe fn hal_initialize(mode: i32) -> i32 {
     HAL_INITIALIZED = true;
 
     HAL_Initialize(mode)
 }
 
-/// Must not be called from separate threads at the same time (access of a static mut)
 pub unsafe fn hal_is_initialized() -> bool {
     HAL_INITIALIZED
 }
