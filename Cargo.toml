@@ -1,6 +1,6 @@
 [package]
 name = "wpilib-hal"
-version = "0.1.1"
+version = "0.2.1"
 authors = ["XavilPergis <max.duzen@gmail.com>"]
 build = "build.rs"
 
@@ -13,10 +13,6 @@ categories = ["external-ffi-bindings"]
 license = "MIT"
 
 [dependencies]
-# Any version of clippy should work
-clippy = { version = "0.0.114", optional = true }
-time = "0.1.36"
-lazy_static = "0.2.2"
 
 [build-dependencies]
 bindgen = "0.22.0"

@@ -12,8 +12,6 @@
 #![cfg_attr(debug_assertions, allow(missing_docs))]
 #![allow(dead_code)]
 
-extern crate time;
-
 /// Contains aggregate error types and macros for calling FFI functions
 #[macro_use]
 pub mod error;
