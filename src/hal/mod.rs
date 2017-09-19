@@ -45,7 +45,7 @@ extern "C" {
     pub fn HAL_GetPort(channel: i32) -> PortHandle;
     pub fn HAL_GetPortWithModule(module: i32, channel: i32) -> PortHandle;
     pub fn HAL_GetFPGATime(status: *mut i32) -> u64;
-    pub fn HAL_Initialize(mode: i32) -> i32;
+    pub fn HAL_Initialize(timeout: i32, mode: i32) -> NativeBool;
     pub fn HAL_Report(resource: i32, instanceNumber: i32, context: i32, feature: *const c_char) -> i64;
 }
 
@@ -99,10 +99,10 @@ pub fn get_fpga_time() -> HalResult<u64> {
     unsafe { hal_call!(ptr HAL_GetFPGATime()) }
 }
 
-pub unsafe fn hal_initialize(mode: i32) -> i32 {
+pub unsafe fn hal_initialize(timeout: i32, mode: i32) -> bool {
     HAL_INITIALIZED = true;
 
-    HAL_Initialize(mode)
+    HAL_Initialize(timeout, mode) != 0
 }
 
 pub unsafe fn hal_is_initialized() -> bool {
