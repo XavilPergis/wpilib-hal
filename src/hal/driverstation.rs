@@ -104,14 +104,11 @@ extern "C" {
 
 fn str_to_cstring(input: &str) -> CString {
     let mut buf = String::with_capacity(input.len());
-    let mut count = 0;
     for &byte in input.as_bytes() {
         buf.push(match byte {
             b'\0' => '\u{FFFD}',
             b => b as char
         });
-
-        count += 1;
     }
 
     // We just got rid of all the null bytes so we can unwrap
@@ -153,30 +150,38 @@ pub fn get_alliance_station() -> HalResult<AllianceStationId> {
 
 #[inline(always)]
 pub fn get_joystick_axes(joystick_num: i32) -> HalResult<JoystickAxes> {
-    let axes = ::std::mem::zeroed();
-    unsafe { hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut axes))?; }
-    Ok(axes)
+    unsafe {
+        let mut axes = ::std::mem::zeroed();
+        hal_call!(ret HAL_GetJoystickAxes(joystick_num, &mut axes))?;
+        Ok(axes)
+    }
 }
 
 #[inline(always)]
 pub fn get_joystick_povs(joystick_num: i32) -> HalResult<JoystickPovs> {
-    let povs = ::std::mem::zeroed();
-    unsafe { hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut povs))?; }
-    Ok(povs)
+    unsafe {
+        let mut povs = ::std::mem::zeroed();
+        hal_call!(ret HAL_GetJoystickPOVs(joystick_num, &mut povs))?;
+        Ok(povs)
+    }
 }
 
 #[inline(always)]
 pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
-    let buttons = ::std::mem::zeroed();
-    unsafe { hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut buttons))?; }
-    Ok(buttons)
+    unsafe {
+        let mut buttons = ::std::mem::zeroed();
+        hal_call!(ret HAL_GetJoystickButtons(joystick_num, &mut buttons))?;
+        Ok(buttons)
+    }
 }
 
 #[inline(always)]
 pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
-    let descriptor = ::std::mem::zeroed();
-    unsafe { hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor))?; }
-    Ok(descriptor)
+    unsafe {
+        let mut descriptor = ::std::mem::zeroed();
+        hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor))?;
+        Ok(descriptor)
+    }
 }
 
 #[inline(always)]
@@ -204,13 +209,13 @@ pub fn joystick_axis_type(joystick_num: i32, axis: i32) -> i32 {
 }
 
 #[inline(always)]
-pub fn SetJoystickOutputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) {
+pub fn set_joystick_outputs(joystick_num: i32, outputs: i64, left_rumble: i32, right_rumble: i32) {
     // wpilib ignores the status, so do we lol
     unsafe { HAL_SetJoystickOutputs(joystick_num, outputs, left_rumble, right_rumble); }
 }
 
 #[inline(always)]
-pub fn get_match_time() {
+pub fn get_match_time() -> HalResult<f64> {
     unsafe { hal_call!(ptr HAL_GetMatchTime()) }
 }
 
