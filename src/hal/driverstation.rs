@@ -178,6 +178,7 @@ pub fn get_joystick_buttons(joystick_num: i32) -> HalResult<JoystickButtons> {
 #[inline(always)]
 pub fn get_joystick_descriptor(joystick_num: i32) -> HalResult<JoystickDescriptor> {
     unsafe {
+        // Struct contains only data that is zeroable, so it should be safe to zero
         let mut descriptor = ::std::mem::zeroed();
         hal_call!(ret HAL_GetJoystickDescriptor(joystick_num, &mut descriptor))?;
         Ok(descriptor)
@@ -199,7 +200,7 @@ pub fn joystick_name(joystick_num: i32) -> String {
     unsafe {
         use std::ffi::CStr;
         let ptr = HAL_GetJoystickName(joystick_num);
-        CStr::from_ptr(ptr).to_string_lossy().to_string()
+        CStr::from_ptr(ptr).to_string_lossy().to_string() // TODO: to_owned
     }
 }
 

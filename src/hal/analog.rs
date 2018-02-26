@@ -1,6 +1,5 @@
-use std::ops::Range;
 use std::os::raw::c_double;
-use hal::types::{AnalogInputHandle, AnalogOutputHandle, AnalogTriggerHandle, GyroHandle, PortHandle, NativeBool};
+use hal::types::{AnalogInputHandle, AnalogOutputHandle, GyroHandle, PortHandle, NativeBool};
 use error::*;
 
 extern "C" {
@@ -12,6 +11,7 @@ extern "C" {
     fn HAL_GetAccumulatorValue(handle: AnalogInputHandle, status: *mut i32) -> i64;
     fn HAL_GetAccumulatorCount(handle: AnalogInputHandle, status: *mut i32) -> i64;
     fn HAL_GetAccumulatorOutput(handle: AnalogInputHandle, value: *mut i64, count: *mut i64, status: *mut i32);
+    
     fn HAL_InitializeAnalogGyro(handle: AnalogInputHandle, status: *mut i32) -> GyroHandle;
     fn HAL_SetupAnalogGyro(handle: GyroHandle, status: *mut i32);
     fn HAL_FreeAnalogGyro(handle: GyroHandle);
@@ -24,15 +24,16 @@ extern "C" {
     fn HAL_GetAnalogGyroRate(handle: GyroHandle, status: *mut i32) -> c_double;
     fn HAL_GetAnalogGyroOffset(handle: GyroHandle, status: *mut i32) -> c_double;
     fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
+    
     fn HAL_InitializeAnalogInputPort(handle: PortHandle, status: *mut i32) -> AnalogInputHandle;
     fn HAL_FreeAnalogInputPort(handle: AnalogInputHandle);
     fn HAL_CheckAnalogModule(module: i32) -> NativeBool;
     fn HAL_CheckAnalogInputChannel(channel: i32) -> NativeBool;
-    fn HAL_SetAnalogSampleRate(samplesPerSecond: c_double, status: *mut i32);
-    fn HAL_GetAnalogSampleRate(status: *mut i32) -> c_double;
-    fn HAL_SetAnalogAverageBits(handle: AnalogInputHandle, bits: i32, status: *mut i32);
-    fn HAL_GetAnalogAverageBits(handle: AnalogInputHandle, status: *mut i32) -> i32;
     fn HAL_SetAnalogOversampleBits(handle: AnalogInputHandle, bits: i32, status: *mut i32);
+    fn HAL_SetAnalogSampleRate(samplesPerSecond: c_double, status: *mut i32);
+    fn HAL_SetAnalogAverageBits(handle: AnalogInputHandle, bits: i32, status: *mut i32);
+    fn HAL_GetAnalogSampleRate(status: *mut i32) -> c_double;
+    fn HAL_GetAnalogAverageBits(handle: AnalogInputHandle, status: *mut i32) -> i32;
     fn HAL_GetAnalogOversampleBits(handle: AnalogInputHandle, status: *mut i32) -> i32;
     fn HAL_GetAnalogValue(handle: AnalogInputHandle, status: *mut i32) -> i32;
     fn HAL_GetAnalogAverageValue(handle: AnalogInputHandle, status: *mut i32) -> i32;
@@ -41,249 +42,129 @@ extern "C" {
     fn HAL_GetAnalogAverageVoltage(handle: AnalogInputHandle, status: *mut i32) -> c_double;
     fn HAL_GetAnalogLSBWeight(handle: AnalogInputHandle, status: *mut i32) -> i32;
     fn HAL_GetAnalogOffset(handle: AnalogInputHandle, status: *mut i32) -> i32;
+    
     fn HAL_InitializeAnalogOutputPort(handle: PortHandle, status: *mut i32) -> AnalogOutputHandle;
     fn HAL_FreeAnalogOutputPort(handle: AnalogOutputHandle);
+    fn HAL_CheckAnalogOutputChannel(channel: i32) -> NativeBool;
     fn HAL_SetAnalogOutput(handle: AnalogOutputHandle, voltage: c_double, status: *mut i32);
     fn HAL_GetAnalogOutput(handle: AnalogOutputHandle, status: *mut i32) -> c_double;
-    fn HAL_CheckAnalogOutputChannel(channel: i32) -> NativeBool;
-    fn HAL_InitializeAnalogTrigger(handle: AnalogInputHandle, index: *mut i32, status: *mut i32) -> AnalogTriggerHandle;
-    fn HAL_CleanAnalogTrigger(handle: AnalogTriggerHandle, status: *mut i32);
-    fn HAL_SetAnalogTriggerLimitsRaw(handle: AnalogTriggerHandle, lower: i32, upper: i32, status: *mut i32);
-    fn HAL_SetAnalogTriggerLimitsVoltage(handle: AnalogTriggerHandle, lower: c_double, upper: c_double, status: *mut i32);
-    fn HAL_SetAnalogTriggerAveraged(handle: AnalogTriggerHandle, useAveragedValue: NativeBool, status: *mut i32);
-    fn HAL_SetAnalogTriggerFiltered(handle: AnalogTriggerHandle, useFilteredValue: NativeBool, status: *mut i32);
-    fn HAL_GetAnalogTriggerInWindow(handle: AnalogTriggerHandle, status: *mut i32) -> NativeBool;
-    fn HAL_GetAnalogTriggerTriggerState(handle: AnalogTriggerHandle, status: *mut i32) -> NativeBool;
-    fn HAL_GetAnalogTriggerOutput(handle: AnalogTriggerHandle, type_: AnalogTriggerType, status: *mut i32) -> NativeBool;
 }
 
-/// The raw output of an accumulator.
-pub struct AccumulatorOutput {
-    value: i64,
-    count: i64
+fn check_output_channel(channel: i32) -> bool { unsafe { HAL_CheckAnalogOutputChannel(channel) != 0 } }
+fn check_input_channel(channel: i32) -> bool { unsafe { HAL_CheckAnalogInputChannel(channel) != 0 } }
+
+#[derive(Debug)]
+pub struct AnalogInput {
+    pub(crate) port: i32,
+    pub(crate) channel: i32,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(u32)]
-pub enum AnalogTriggerType {
-    /// Makes the trigger return true if the value is in the bounds
-    InWindow = 0,
-    /// Makes the trigger return the last state if in range, true if higher, or false if lower
-    State = 1,
-    RisingPulse = 2,
-    FallingPulse = 3,
-}
+impl AnalogInput {
+    pub fn new(channel: i32) -> HalResult<Self> {
+        if !check_input_channel(channel) { return Err(HalError::OutOfRange); }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum AnalogTriggerLimits {
-    Raw(Range<i32>),
-    Voltage(Range<f64>)
-}
-
-#[inline(always)]
-pub fn initialize_analog_input_port(handle: PortHandle) -> HalResult<AnalogInputHandle> {
-    unsafe { hal_call!(ptr HAL_InitializeAnalogInputPort(handle)) }
-}
-
-#[inline(always)]
-pub fn free_analog_input_port(handle: AnalogInputHandle) {
-    unsafe { HAL_FreeAnalogInputPort(handle) }
-}
-
-#[inline(always)]
-pub fn initialize_analog_output_port(handle: PortHandle) -> HalResult<AnalogOutputHandle> {
-    unsafe { hal_call!(ptr HAL_InitializeAnalogOutputPort(handle)) }
-}
-
-#[inline(always)]
-pub fn free_analog_output_port(handle: AnalogOutputHandle) {
-    unsafe { HAL_FreeAnalogOutputPort(handle) }
-}
-
-
-#[inline(always)]// TODO: What does this function do?
-pub fn check_analog_module(module: i32) -> bool {
-    unsafe { HAL_CheckAnalogModule(module) != 0 }
-}
-
-
-#[inline(always)]// TODO: What does this function do?
-pub fn check_analog_input_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckAnalogInputChannel(channel) != 0 }
-}
-
-#[inline(always)]
-pub fn check_analog_output_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckAnalogOutputChannel(channel) != 0 }
-}
-
-#[inline(always)]
-pub fn set_analog_sample_rate(samples_per_second: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogSampleRate(samples_per_second)) }
-}
-
-#[inline(always)]
-pub fn get_analog_sample_rate() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetAnalogSampleRate()) }
-}
-
-#[inline(always)]
-pub fn set_analog_average_bits(handle: AnalogInputHandle, bits: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogAverageBits(handle, bits)) }
-}
-
-#[inline(always)]
-pub fn get_analog_average_bits(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogAverageBits(handle)) }
-}
-
-#[inline(always)]
-pub fn set_analog_oversample_bits(handle: AnalogInputHandle, bits: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogOversampleBits(handle, bits)) }
-}
-
-#[inline(always)]
-pub fn get_analog_oversample_bits(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogOversampleBits(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_value(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogValue(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_average_value(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogAverageValue(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_volts_to_value(handle: AnalogInputHandle, voltage: f64) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogVoltsToValue(handle, voltage)) }
-}
-
-#[inline(always)]
-pub fn get_analog_voltage(handle: AnalogInputHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetAnalogVoltage(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_average_voltage(handle: AnalogInputHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetAnalogAverageVoltage(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_lsb_weight(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogLSBWeight(handle)) }
-}
-
-#[inline(always)]
-pub fn get_analog_offset(handle: AnalogInputHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAnalogOffset(handle)) }
-}
-
-#[inline(always)]
-pub fn set_analog_output(handle: AnalogOutputHandle, voltage: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogOutput(handle, voltage)) }
-}
-
-#[inline(always)]
-pub fn get_analog_output(handle: AnalogOutputHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetAnalogOutput(handle)) }
-}
-
-#[inline(always)]
-pub fn is_accumulator_channel(port: AnalogInputHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_IsAccumulatorChannel(port)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn initialize_accumulator(port: AnalogInputHandle) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_InitAccumulator(port)) }
-}
-
-#[inline(always)]
-pub fn reset_accumulator(port: AnalogInputHandle) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_ResetAccumulator(port)) }
-}
-
-#[inline(always)]
-pub fn set_accumulator_center(port: AnalogInputHandle, center: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAccumulatorCenter(port, center)) }
-}
-
-#[inline(always)]
-pub fn set_accumulator_deadband(port: AnalogInputHandle, deadband: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAccumulatorDeadband(port, deadband)) }
-}
-
-#[inline(always)]
-pub fn get_accumulator_value(port: AnalogInputHandle) -> HalResult<i64> {
-    unsafe { hal_call!(ptr HAL_GetAccumulatorValue(port)) }
-}
-
-
-#[inline(always)]
-pub fn get_accumulator_count(port: AnalogInputHandle) -> HalResult<i64> {
-    unsafe { hal_call!(ptr HAL_GetAccumulatorCount(port)) }
-}
-
-#[inline(always)]
-pub fn get_accumulator_output(port: AnalogInputHandle) -> HalResult<AccumulatorOutput> {
-    let mut value = 0;
-    let mut count = 0;
-
-    unsafe {
-        hal_call!(ptr HAL_GetAccumulatorOutput(port, &mut value, &mut count))?;
+        let port_handle = ::hal::get_port(channel).ok_or(HalError::OutOfRange)?;
+        let port = unsafe { hal_call!(ptr HAL_InitializeAnalogInputPort(port_handle))? };
+        
+        Ok(AnalogInput { port, channel })
     }
 
-    Ok(AccumulatorOutput { value, count })
-
+    fn set_analog_oversample_bits(&self, bits: i32) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetAnalogOversampleBits(self.port, bits)) }
+    }
+    
+    /// Set the global sample rate for all DigitalInputs in samples per second
+    fn set_analog_sample_rate(sample_rate: f64) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetAnalogSampleRate(sample_rate)) }
+    }
+    
+    fn get_analog_sample_rate() -> HalResult<f64> {
+        unsafe { hal_call!(ptr HAL_GetAnalogSampleRate()) }
+    }
+    
+    /// Set the size of the averaging window. The sampling window can only be sized in powers
+    /// of 2, so the actual number of samples in a window is `2^bits`
+    fn set_analog_average_bits(&self, bits: i32) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetAnalogAverageBits(self.port, bits)) }
+    }
+    
+    fn get_analog_average_bits(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogAverageBits(self.port)) }
+    }
+    
+    fn get_analog_oversample_bits(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogOversampleBits(self.port)) }
+    }
+    
+    fn get_analog_value(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogValue(self.port)) }
+    }
+    
+    fn get_analog_average_value(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogAverageValue(self.port)) }
+    }
+    
+    fn get_analog_volts_to_value(&self, voltage: f64) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogVoltsToValue(self.port, voltage)) }
+    }
+    
+    fn get_analog_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(ptr HAL_GetAnalogVoltage(self.port)) }
+    }
+    
+    fn get_analog_average_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(ptr HAL_GetAnalogAverageVoltage(self.port)) }
+    }
+    
+    fn get_analog_lsb_weight(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogLSBWeight(self.port)) }
+    }
+    
+    fn get_analog_offset(&self) -> HalResult<i32> {
+        unsafe { hal_call!(ptr HAL_GetAnalogOffset(self.port) ) }
+    }
 }
 
-#[inline(always)]
-pub fn initialize_analog_trigger(handle: AnalogInputHandle) -> HalResult<(AnalogTriggerHandle, i32)> {
-    let mut index = 0;
-    let handle = unsafe { hal_call!(ptr HAL_InitializeAnalogTrigger(handle, &mut index))? };
-    Ok((handle, index))
+impl Drop for AnalogInput {
+    fn drop(&mut self) {
+        unsafe { HAL_FreeAnalogInputPort(self.port); }
+    }
 }
 
-#[inline(always)]
-pub fn clean_analog_trigger(handle: AnalogTriggerHandle) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_CleanAnalogTrigger(handle)) }
+#[derive(Debug)]
+pub struct AnalogOutput {
+    port: i32,
+    channel: i32,
 }
 
-#[inline(always)]
-pub fn set_analog_trigger_limits_raw(handle: AnalogTriggerHandle, lower: i32, upper: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogTriggerLimitsRaw(handle, lower, upper)) }
+impl AnalogOutput {
+    pub fn new(channel: i32) -> HalResult<Self> {
+        if !check_output_channel(channel) { return Err(HalError::OutOfRange); }
+
+        let port_handle = ::hal::get_port(channel).ok_or(HalError::OutOfRange)?;
+        let port = unsafe { hal_call!(ptr HAL_InitializeAnalogOutputPort(port_handle))? };
+        
+        Ok(AnalogOutput { port, channel })
+    }
+
+    pub fn set_voltage(&self, voltage: f64) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetAnalogOutput(self.port, voltage)) }
+    }
+
+    pub fn get_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(ptr HAL_GetAnalogOutput(self.port)) }
+    }
 }
 
-#[inline(always)]
-pub fn set_analog_trigger_limits_voltage(handle: AnalogTriggerHandle, lower: f64, upper: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogTriggerLimitsVoltage(handle, lower, upper)) }
+impl Drop for AnalogOutput {
+    fn drop(&mut self) {
+        unsafe { HAL_FreeAnalogOutputPort(self.port); }
+    }
 }
 
-#[inline(always)]
-pub fn set_analog_trigger_averaged(handle: AnalogTriggerHandle, use_averaged_value: bool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogTriggerAveraged(handle, use_averaged_value as NativeBool)) }
-}
-
-#[inline(always)]
-pub fn set_analog_trigger_filtered(handle: AnalogTriggerHandle, use_filtered_value: bool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAnalogTriggerFiltered(handle, use_filtered_value as NativeBool)) }
-}
-
-#[inline(always)]
-pub fn get_analog_trigger_window(handle: AnalogTriggerHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetAnalogTriggerInWindow(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_analog_trigger_state(handle: AnalogTriggerHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetAnalogTriggerTriggerState(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_analog_trigger_output(handle: AnalogTriggerHandle, trigger_type: AnalogTriggerType) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetAnalogTriggerOutput(handle, trigger_type)).map(|n| n != 0) }
+// TODO
+#[derive(Debug)]
+pub struct AnalogIO {
+    input: AnalogInput,
+    output: AnalogOutput,
 }

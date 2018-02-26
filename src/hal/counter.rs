@@ -1,5 +1,5 @@
 use error::*;
-use hal::analog::AnalogTriggerType;
+use hal::analog_trigger::AnalogTriggerType;
 use hal::types::{CounterHandle, Handle, DigitalHandle, NativeBool};
 
 extern "C" {

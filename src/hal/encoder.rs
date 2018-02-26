@@ -1,6 +1,6 @@
 use error::*;
 use hal::types::{Handle, EncoderHandle, NativeBool};
-use hal::analog::AnalogTriggerType;
+use hal::analog_trigger::AnalogTriggerType;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u32)]

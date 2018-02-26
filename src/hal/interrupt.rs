@@ -1,5 +1,5 @@
 use std::os::raw::{c_void, c_double};
-use hal::analog::AnalogTriggerType;
+use hal::analog_trigger::AnalogTriggerType;
 use hal::types::{InterruptHandle, Handle, DigitalHandle, NativeBool};
 use error::*;
 

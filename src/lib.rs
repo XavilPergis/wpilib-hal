@@ -7,17 +7,11 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-// Only deny missing docs in release mode
-#![cfg_attr(not(debug_assertions), deny(missing_docs))]
-#![cfg_attr(debug_assertions, allow(missing_docs))]
 #![allow(dead_code)]
 
 /// Contains aggregate error types and macros for calling FFI functions
 #[macro_use]
 pub mod error;
-
-#[macro_use]
-pub mod log;
 
 /// Contains bindings to the HAL
 #[macro_use]

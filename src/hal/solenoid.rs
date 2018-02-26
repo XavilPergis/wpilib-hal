@@ -7,71 +7,75 @@ extern "C" {
     fn HAL_CheckSolenoidModule(module: i32) -> NativeBool;
     fn HAL_CheckSolenoidChannel(channel: i32) -> NativeBool;
     fn HAL_GetSolenoid(handle: SolenoidHandle, status: *mut i32) -> NativeBool;
-    fn HAL_GetAllSolenoids(module: i32, status: *mut i32) -> i32;
     fn HAL_SetSolenoid(handle: SolenoidHandle, value: NativeBool, status: *mut i32);
-    fn HAL_SetAllSolenoids(module: i32, state: i32, status: *mut i32);
     fn HAL_GetPCMSolenoidBlackList(module: i32, status: *mut i32) -> i32;
+    fn HAL_SetOneShotDuration(handle: SolenoidHandle, duration_ms: i32, status: *mut i32);
+    fn HAL_FireOneShot(handle: SolenoidHandle, status: *mut i32);
+
+    // TODO: unused
+    fn HAL_GetAllSolenoids(module: i32, status: *mut i32) -> i32;
+    fn HAL_SetAllSolenoids(module: i32, state: i32, status: *mut i32);
     fn HAL_GetPCMSolenoidVoltageStickyFault(module: i32, status: *mut i32) -> NativeBool;
     fn HAL_GetPCMSolenoidVoltageFault(module: i32, status: *mut i32) -> NativeBool;
     fn HAL_ClearAllPCMStickyFaults(module: i32, status: *mut i32);
 }
 
-#[inline(always)]
-pub fn initialize_port(handle: PortHandle) -> HalResult<SolenoidHandle> {
-    unsafe { hal_call!(ptr HAL_InitializeSolenoidPort(handle)) }
+fn check_module(module: i32) -> bool { unsafe { HAL_CheckSolenoidModule(module) != 0 } }
+fn check_channel(channel: i32) -> bool { unsafe { HAL_CheckSolenoidChannel(channel) != 0 } }
+
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub struct Solenoid {
+    channel: i32,
+    handle: i32,
 }
 
-#[inline(always)]
-pub fn free_port(handle: SolenoidHandle) {
-    unsafe { HAL_FreeSolenoidPort(handle) }
+impl Solenoid {
+    pub fn new(channel: i32) -> HalResult<Self> {
+        // TODO
+        Solenoid::with_module(0, channel)
+    }
+
+    pub fn with_module(module: i32, channel: i32) -> HalResult<Self> {
+        if !check_channel(channel) || !check_module(module) {
+            return Err(HalError::OutOfRange);
+        }
+
+        // Will this ever return an invalid handle after validating the channel/module beforehand?
+        let port_handle = ::hal::get_port_with_module(module, channel).ok_or(HalError::InvalidChannel)?;
+        let handle = unsafe { hal_call!(ptr HAL_InitializeSolenoidPort(port_handle))? };
+
+        Ok(Solenoid { channel, handle })
+    }
+
+    pub fn set(&self, on: bool) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetSolenoid(self.handle, on as NativeBool)) }
+    }
+
+    pub fn get(&self) -> HalResult<bool> {
+        unsafe { hal_call!(ptr HAL_GetSolenoid(self.handle)).map(|n| n != 0) }
+    }
+
+    /// Check if this solenoid is blacklisted. If a solenoid is shorted, it is added to a
+    /// blacklist, and is disabled until faults are cleared or a power cycle.
+    pub fn is_blacklisted(&self, module: i32) -> HalResult<bool> {
+        unsafe {
+            // returns a "list" of bools packed into an int, with the LSB being index 0
+            hal_call!(ptr HAL_GetPCMSolenoidBlackList(module))
+                .map(|blacklist_bits| blacklist_bits & (1 << self.channel) != 0)
+        }
+    }
+
+    pub fn set_pulse_duration(&self, duration: i32) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_SetOneShotDuration(self.handle, duration)) }
+    }
+
+    pub fn fire_pulse(&self) -> HalResult<()> {
+        unsafe { hal_call!(ptr HAL_FireOneShot(self.handle)) }
+    }
 }
 
-#[inline(always)]
-pub fn check_module(module: i32) -> bool {
-    unsafe { HAL_CheckSolenoidModule(module) != 0 }
-}
-
-#[inline(always)]
-pub fn check_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckSolenoidChannel(channel) != 0 }
-}
-
-#[inline(always)]
-pub fn get(handle: SolenoidHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetSolenoid(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_all_solenoids(module: i32) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetAllSolenoids(module)) }
-}
-
-#[inline(always)]
-pub fn set(solenoid_port_handle: SolenoidHandle, value: bool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetSolenoid(solenoid_port_handle, value as NativeBool)) }
-}
-
-#[inline(always)]
-pub fn set_all_solenoids(module: i32, state: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetAllSolenoids(module, state)) }
-}
-
-#[inline(always)]
-pub fn get_pcm_black_list(module: i32) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetPCMSolenoidBlackList(module)) }
-}
-
-#[inline(always)]
-pub fn get_pcm_voltage_sticky_fault(module: i32) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetPCMSolenoidVoltageStickyFault(module)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_pcm_voltage_fault(module: i32) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetPCMSolenoidVoltageFault(module)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn clear_all_pcm_sticky_faults(module: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_ClearAllPCMStickyFaults(module)) }
+impl Drop for Solenoid {
+    fn drop(&mut self) {
+        unsafe { HAL_FreeSolenoidPort(self.handle) }
+    }
 }
