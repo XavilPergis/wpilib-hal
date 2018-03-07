@@ -1,5 +1,5 @@
 use error::*;
-use hal::types::NativeBool;
+use hal::types::*;
 use std::os::raw::c_double;
 
 extern "C" {
@@ -16,57 +16,50 @@ extern "C" {
     fn HAL_ClearPDPStickyFaults(module: i32, status: *mut i32);
 }
 
-#[inline(always)]
-pub fn initialize_pdp(module: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_InitializePDP(module)) }
+fn check_channel(channel: i32) -> bool { unsafe { HAL_CheckPDPChannel(channel) != 0 } }
+fn check_module(channel: i32) -> bool { unsafe { HAL_CheckPDPModule(channel) != 0 } }
+
+pub struct PowerDistributionPanel {
+    pub(crate) module: i32,
 }
 
-#[inline(always)]
-pub fn check_pdp_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckPDPChannel(channel) != 0 }
-}
+impl PowerDistributionPanel {
+    pub fn new(module: i32) -> HalResult<Self> {
+        if !check_module(module) { return Err(HalError::InvalidModule(module)); }
+        unsafe { hal_call!(HAL_InitializePDP(module))?; }
+        Ok(PowerDistributionPanel { module })
+    }
 
-#[inline(always)]
-pub fn check_pdp_module(module: i32) -> bool {
-    unsafe { HAL_CheckPDPModule(module) != 0 }
-}
+    pub fn get_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetPDPVoltage(self.module)) }
+    }
 
-#[inline(always)]
-pub fn get_pdp_temperature(module: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPTemperature(module)) }
-}
+    pub fn get_temperature(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetPDPTemperature(self.module)) }
+    }
 
-#[inline(always)]
-pub fn get_pdp_voltage(module: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPVoltage(module)) }
-}
-
-#[inline(always)]
-pub fn get_pdp_channel_current(module: i32, channel: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPChannelCurrent(module, channel)) }
-}
-
-#[inline(always)]
-pub fn get_pdp_total_current(module: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPTotalCurrent(module)) }
-}
-
-#[inline(always)]
-pub fn get_pdp_total_power(module: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPTotalPower(module)) }
-}
-
-#[inline(always)]
-pub fn get_pdp_total_energy(module: i32) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetPDPTotalEnergy(module)) }
-}
-
-#[inline(always)]
-pub fn reset_pdp_total_energy(module: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_ResetPDPTotalEnergy(module)) }
-}
-
-#[inline(always)]
-pub fn clear_pdp_sticky_faults(module: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_ClearPDPStickyFaults(module)) }
+    pub fn get_current(&self, channel: i32) -> HalResult<f64> {
+        if !check_channel(channel) { return Err(HalError::InvalidChannel(channel)); }
+        unsafe { hal_call!(HAL_GetPDPChannelCurrent(self.module, channel)) }
+    }
+    
+    pub fn get_total_current(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetPDPTotalCurrent(self.module)) }
+    }
+    
+    pub fn get_total_power(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetPDPTotalPower(self.module)) }
+    }
+    
+    pub fn get_total_energy(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetPDPTotalEnergy(self.module)) }
+    }
+    
+    pub fn reset_total_energy(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_ResetPDPTotalEnergy(self.module)) }
+    }
+    
+    pub fn clear_sticky_faults(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_ClearPDPStickyFaults(self.module)) }
+    }
 }

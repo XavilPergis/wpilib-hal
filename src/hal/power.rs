@@ -21,70 +21,70 @@ extern "C" {
 
 #[inline(always)]
 pub fn get_vin_voltage() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetVinVoltage()) }
+    unsafe { hal_call!(HAL_GetVinVoltage()) }
 }
 
 #[inline(always)]
 pub fn get_vin_current() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetVinCurrent()) }
+    unsafe { hal_call!(HAL_GetVinCurrent()) }
 }
 
 #[inline(always)]
 pub fn get_user_voltage6v() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserVoltage6V()) }
+    unsafe { hal_call!(HAL_GetUserVoltage6V()) }
 }
 
 #[inline(always)]
 pub fn get_user_current6v() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrent6V()) }
+    unsafe { hal_call!(HAL_GetUserCurrent6V()) }
 }
 
 #[inline(always)]
 pub fn get_user_active6v() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetUserActive6V()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetUserActive6V()).map(|n| n != 0) }
 }
 
 #[inline(always)]
 pub fn get_user_current_faults6v() -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrentFaults6V()) }
+    unsafe { hal_call!(HAL_GetUserCurrentFaults6V()) }
 }
 
 #[inline(always)]
 pub fn get_user_voltage5v() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserVoltage5V()) }
+    unsafe { hal_call!(HAL_GetUserVoltage5V()) }
 }
 
 #[inline(always)]
 pub fn get_user_current5v() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrent5V()) }
+    unsafe { hal_call!(HAL_GetUserCurrent5V()) }
 }
 
 #[inline(always)]
 pub fn get_user_active5v() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetUserActive5V()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetUserActive5V()).map(|n| n != 0) }
 }
 
 #[inline(always)]
 pub fn get_user_current_faults5v() -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrentFaults5V()) }
+    unsafe { hal_call!(HAL_GetUserCurrentFaults5V()) }
 }
 
 #[inline(always)]
 pub fn get_user_voltage3v3() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserVoltage3V3()) }
+    unsafe { hal_call!(HAL_GetUserVoltage3V3()) }
 }
 
 #[inline(always)]
 pub fn get_user_current3v3() -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrent3V3()) }
+    unsafe { hal_call!(HAL_GetUserCurrent3V3()) }
 }
 
 #[inline(always)]
 pub fn get_user_active3v3() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetUserActive3V3()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetUserActive3V3()).map(|n| n != 0) }
 }
 
 #[inline(always)]
 pub fn get_user_current_faults3v3() -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetUserCurrentFaults3V3()) }
+    unsafe { hal_call!(HAL_GetUserCurrentFaults3V3()) }
 }

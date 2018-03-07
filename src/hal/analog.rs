@@ -61,67 +61,67 @@ pub struct AnalogInput {
 
 impl AnalogInput {
     pub fn new(channel: i32) -> HalResult<Self> {
-        if !check_input_channel(channel) { return Err(HalError::OutOfRange); }
+        if !check_input_channel(channel) { return Err(HalError::InvalidChannel(channel)); }
 
-        let port_handle = ::hal::get_port(channel).ok_or(HalError::OutOfRange)?;
-        let port = unsafe { hal_call!(ptr HAL_InitializeAnalogInputPort(port_handle))? };
+        let port_handle = ::hal::get_port(channel).ok_or(HalError::InvalidChannel(channel))?;
+        let port = unsafe { hal_call!(HAL_InitializeAnalogInputPort(port_handle))? };
         
         Ok(AnalogInput { port, channel })
     }
 
-    fn set_analog_oversample_bits(&self, bits: i32) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogOversampleBits(self.port, bits)) }
+    pub fn set_analog_oversample_bits(&self, bits: i32) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetAnalogOversampleBits(self.port, bits)) }
     }
     
     /// Set the global sample rate for all DigitalInputs in samples per second
-    fn set_analog_sample_rate(sample_rate: f64) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogSampleRate(sample_rate)) }
+    pub fn set_analog_sample_rate(sample_rate: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetAnalogSampleRate(sample_rate)) }
     }
     
-    fn get_analog_sample_rate() -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogSampleRate()) }
+    pub fn get_analog_sample_rate() -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogSampleRate()) }
     }
     
     /// Set the size of the averaging window. The sampling window can only be sized in powers
     /// of 2, so the actual number of samples in a window is `2^bits`
-    fn set_analog_average_bits(&self, bits: i32) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogAverageBits(self.port, bits)) }
+    pub fn set_analog_average_bits(&self, bits: i32) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetAnalogAverageBits(self.port, bits)) }
     }
     
-    fn get_analog_average_bits(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogAverageBits(self.port)) }
+    pub fn get_analog_average_bits(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogAverageBits(self.port)) }
     }
     
-    fn get_analog_oversample_bits(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogOversampleBits(self.port)) }
+    pub fn get_analog_oversample_bits(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogOversampleBits(self.port)) }
     }
     
-    fn get_analog_value(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogValue(self.port)) }
+    pub fn get_analog_value(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogValue(self.port)) }
     }
     
-    fn get_analog_average_value(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogAverageValue(self.port)) }
+    pub fn get_analog_average_value(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogAverageValue(self.port)) }
     }
     
-    fn get_analog_volts_to_value(&self, voltage: f64) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogVoltsToValue(self.port, voltage)) }
+    pub fn get_analog_volts_to_value(&self, voltage: f64) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogVoltsToValue(self.port, voltage)) }
     }
     
-    fn get_analog_voltage(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogVoltage(self.port)) }
+    pub fn get_analog_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogVoltage(self.port)) }
     }
     
-    fn get_analog_average_voltage(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogAverageVoltage(self.port)) }
+    pub fn get_analog_average_voltage(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogAverageVoltage(self.port)) }
     }
     
-    fn get_analog_lsb_weight(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogLSBWeight(self.port)) }
+    pub fn get_analog_lsb_weight(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogLSBWeight(self.port)) }
     }
     
-    fn get_analog_offset(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogOffset(self.port) ) }
+    pub fn get_analog_offset(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogOffset(self.port) ) }
     }
 }
 
@@ -139,20 +139,20 @@ pub struct AnalogOutput {
 
 impl AnalogOutput {
     pub fn new(channel: i32) -> HalResult<Self> {
-        if !check_output_channel(channel) { return Err(HalError::OutOfRange); }
+        if !check_output_channel(channel) { return Err(HalError::InvalidChannel(channel)); }
 
-        let port_handle = ::hal::get_port(channel).ok_or(HalError::OutOfRange)?;
-        let port = unsafe { hal_call!(ptr HAL_InitializeAnalogOutputPort(port_handle))? };
+        let port_handle = ::hal::get_port(channel).ok_or(HalError::InvalidChannel(channel))?;
+        let port = unsafe { hal_call!(HAL_InitializeAnalogOutputPort(port_handle))? };
         
         Ok(AnalogOutput { port, channel })
     }
 
     pub fn set_voltage(&self, voltage: f64) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogOutput(self.port, voltage)) }
+        unsafe { hal_call!(HAL_SetAnalogOutput(self.port, voltage)) }
     }
 
     pub fn get_voltage(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogOutput(self.port)) }
+        unsafe { hal_call!(HAL_GetAnalogOutput(self.port)) }
     }
 }
 

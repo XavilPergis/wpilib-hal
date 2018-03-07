@@ -13,9 +13,11 @@ pub mod compressor;
 pub mod counter;
 pub mod dio;
 pub mod driverstation;
+pub mod joystick;
 pub mod encoder;
 pub mod i2c;
 pub mod interrupt;
+pub mod notifier;
 pub mod pdp;
 pub mod power;
 pub mod pwm;
@@ -94,11 +96,11 @@ pub fn get_error_message(code: i32) -> &'static str {
 }
 
 pub fn get_fpga_version() -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetFPGAVersion()) }
+    unsafe { hal_call!(HAL_GetFPGAVersion()) }
 }
 
 pub fn get_fpga_revision() -> HalResult<i64> {
-    unsafe { hal_call!(ptr HAL_GetFPGARevision()) }
+    unsafe { hal_call!(HAL_GetFPGARevision()) }
 }
 
 /// Get the runtime type; either athena if running on an actual RoboRIO, or mock if running
@@ -109,21 +111,21 @@ pub fn get_runtime_type() -> RuntimeType {
 
 /// Get the status of the RoboRIO user button.
 pub fn get_fpga_button() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetFPGAButton()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetFPGAButton()).map(|n| n != 0) }
 }
 
 pub fn get_system_active() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetSystemActive()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetSystemActive()).map(|n| n != 0) }
 }
 
 /// Get whether the robot is underpowered.
 pub fn get_browned_out() -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetBrownedOut()).map(|n| n != 0) }
+    unsafe { hal_call!(HAL_GetBrownedOut()).map(|n| n != 0) }
 }
 
 /// You could call this, but why would you want to?
 pub fn base_initialize() -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_BaseInitialize()) }
+    unsafe { hal_call!(HAL_BaseInitialize()) }
 }
 
 const INVALID_HANDLE: i32 = 0;
@@ -144,10 +146,11 @@ pub fn get_port_with_module(module: i32, channel: i32) -> Option<PortHandle> {
 }
 
 pub fn get_fpga_time() -> HalResult<u64> {
-    unsafe { hal_call!(ptr HAL_GetFPGATime()) }
+    unsafe { hal_call!(HAL_GetFPGATime()) }
 }
 
-/// Initialize the HAL. Threadsafe.
+/// Initialize the HAL. Threadsafe. Additionally registers a panic hook that reports panics
+/// along with a stack trace to the driver station. 
 ///
 /// This procedure will try to send SIGTERM to the previous process, and then sleep for
 /// `timeout` milliseconds. If the program hasn't died by then, one of the following actions
@@ -156,9 +159,99 @@ pub fn get_fpga_time() -> HalResult<u64> {
 /// - Mode of `1` will send SIGKILL to the old program
 /// - Any other value will warn that the old process didn't die, but will still launch the new one
 pub fn hal_initialize(timeout: i32, mode: i32) -> bool {
+    use std::{panic, thread};
+
+    panic::set_hook(Box::new(|info| {
+        let loc = info.location().unwrap();
+        let current = thread::current();
+        let thread_name = current.name().unwrap_or("<unnamed>");
+
+        let panic_message = match info.payload().downcast_ref::<&str>() {
+            Some(val) => val,
+            None => match info.payload().downcast_ref::<String>() {
+                Some(val) => &val[..],
+                None => "<unknown>",
+            }
+        };
+
+        let panic_message = format!("Thread '{}' panicked at '{}', {}:{}:{}",
+                                    thread_name, panic_message,
+                                    loc.file(), loc.line(), loc.column());
+        let location = format!("{}:{}:{}", loc.file(), loc.line(), loc.column());
+        let backtrace = format!("{:?}", ::backtrace::Backtrace::new());
+        ::hal::driverstation::send_error(&panic_message, &location, &backtrace);
+    }));
+
     unsafe { HAL_Initialize(timeout, mode) != 0 }
 }
 
-pub fn report(resource: i32, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
-    unsafe { HAL_Report(resource, instance_number, context, feature.as_ptr() as *const c_char) }
+#[repr(i32)]
+pub enum ResourceType {
+    Controller = 0,
+    Module = 1,
+    Language = 2,
+    CANPlugin = 3,
+    Accelerometer = 4,
+    ADXL345 = 5,
+    AnalogChannel = 6,
+    AnalogTrigger = 7,
+    AnalogTriggerOutput = 8,
+    CANJaguar = 9,
+    Compressor = 10,
+    Counter = 11,
+    Dashboard = 12,
+    DigitalInput = 13,
+    DigitalOutput = 14,
+    DriverStationCIO = 15,
+    DriverStationEIO = 16,
+    DriverStationLCD = 17,
+    Encoder = 18,
+    GearTooth = 19,
+    Gyro = 20,
+    I2C = 21,
+    Framework = 22,
+    Jaguar = 23,
+    Joystick = 24,
+    Kinect = 25,
+    KinectStick = 26,
+    PIDController = 27,
+    Preferences = 28,
+    PWM = 29,
+    Relay = 30,
+    RobotDrive = 31,
+    SerialPort = 32,
+    Servo = 33,
+    Solenoid = 34,
+    SPI = 35,
+    Task = 36,
+    Ultrasonic = 37,
+    Victor = 38,
+    Button = 39,
+    Command = 40,
+    AxisCamera = 41,
+    PCVideoServer = 42,
+    SmartDashboard = 43,
+    Talon = 44,
+    HiTechnicColorSensor = 45,
+    HiTechnicAccel = 46,
+    HiTechnicCompass = 47,
+    SRF08 = 48,
+    AnalogOutput = 49,
+    VictorSP = 50,
+    PWMTalonSRX = 51,
+    CANTalonSRX = 52,
+    ADXL362 = 53,
+    ADXRS450 = 54,
+    RevSPARK = 55,
+    MindsensorsSD540 = 56,
+    DigitalFilter = 57,
+    ADIS16448 = 58,
+    PDP = 59,
+    PCM = 60,
+    PigeonIMU = 61,
+    NidecBrushless = 62,
+}
+
+pub fn report(resource: ResourceType, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
+    unsafe { HAL_Report(resource as i32, instance_number, context, feature.as_ptr() as *const c_char) }
 }

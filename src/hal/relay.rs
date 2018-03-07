@@ -21,17 +21,17 @@ fn check_channel(channel: i32) -> bool {
 
 impl Relay {
     pub fn new(port: i32, forward: bool) -> HalResult<Self> {
-        if !check_channel(port) { return Err(HalError::OutOfRange); }
-        let handle = unsafe { hal_call!(ptr HAL_InitializeRelayPort(port, forward))? };
+        if !check_channel(port) { return Err(HalError::InvalidChannel(port)); }
+        let handle = unsafe { hal_call!(HAL_InitializeRelayPort(port, forward as NativeBool))? };
         Ok(Relay { handle })
     }
 
     pub fn set(&self, active: bool) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetRelay(self.handle, active as NativeBool)) }
+        unsafe { hal_call!(HAL_SetRelay(self.handle, active as NativeBool)) }
     }
 
     pub fn get(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetRelay(self.handle)).map(|n| n != 0) }
+        unsafe { hal_call!(HAL_GetRelay(self.handle)).map(|n| n != 0) }
     }
 }
 
@@ -42,13 +42,13 @@ impl Drop for Relay {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-enum DualValue {
+pub enum DualValue {
     On, Off, Forward, Reverse,
 }
 
 /// A relay that has both forward and backward modes
 #[derive(Debug, Eq, PartialEq, Hash)]
-struct DoubleRelay {
+pub struct DoubleRelay {
     forward: Relay,
     reverse: Relay,
 }
@@ -67,8 +67,8 @@ impl DoubleRelay {
     }
     
     pub fn set_active(&self, fwd: bool, rev: bool) -> HalResult<()> {
-        self.forward.set_active(fwd)?;
-        self.reverse.set_active(rev)
+        self.forward.set(fwd)?;
+        self.reverse.set(rev)
     }
 
     pub fn set(&self, value: DualValue) -> HalResult<()> {
@@ -81,10 +81,10 @@ impl DoubleRelay {
     }
 
     pub fn get(&self) -> HalResult<DualValue> {
-        Ok(match (self.forward.get_active()?, self.reverse.get_active()?) {
+        Ok(match (self.forward.get()?, self.reverse.get()?) {
             (true, true)   => DualValue::On,
             (true, false)  => DualValue::Forward,
-            (false, true)  => DualValue::Backward,
+            (false, true)  => DualValue::Reverse,
             (false, false) => DualValue::Off,
         })
     }
@@ -95,16 +95,16 @@ impl DoubleRelay {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum AnyRelay {
     Forward(Relay),
-    Backward(Relay),
+    Reverse(Relay),
     Both(DoubleRelay),
 }
 
 impl AnyRelay {
     pub fn get(&self) -> HalResult<DualValue> {
         match self {
-            &AnyRelay::Both(double) => double.get(),
-            &AnyRelay::Forward(relay) | &AnyRelay::Reverse(relay) =>
-                fwd.get().map(|active| if active { DualValue::On } else { DualValue::Off })
+            &AnyRelay::Both(ref double) => double.get(),
+            &AnyRelay::Forward(ref relay) | &AnyRelay::Reverse(ref relay) =>
+                relay.get().map(|active| if active { DualValue::On } else { DualValue::Off })
         }
     }
 
@@ -115,14 +115,14 @@ impl AnyRelay {
     /// Attempting to use Forward on a reverse relay or vice versa will cause a panic.
     pub fn set(&self, value: DualValue) -> HalResult<()> {
         match self {
-            &AnyRelay::Both(double) => double.set(value),
-            &AnyRelay::Forward(relay) => relay.set(match value {
+            &AnyRelay::Both(ref double) => double.set(value),
+            &AnyRelay::Forward(ref relay) => relay.set(match value {
                 DualValue::On | DualValue::Forward => true,
                 DualValue::Off => false,
                 _ => panic!(),
             }),
-            &AnyRelay::Backward(relay) => relay.set(match value {
-                DualValue::On | DualValue::Backward => true,
+            &AnyRelay::Reverse(ref relay) => relay.set(match value {
+                DualValue::On | DualValue::Reverse => true,
                 DualValue::Off => false,
                 _ => panic!(),
             }),

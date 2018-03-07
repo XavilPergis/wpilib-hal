@@ -36,23 +36,22 @@ impl Solenoid {
     }
 
     pub fn with_module(module: i32, channel: i32) -> HalResult<Self> {
-        if !check_channel(channel) || !check_module(module) {
-            return Err(HalError::OutOfRange);
-        }
+        if !check_channel(channel) { return Err(HalError::InvalidChannel(channel)); }
+        if !check_module(module) { return Err(HalError::InvalidModule(module)); }
 
         // Will this ever return an invalid handle after validating the channel/module beforehand?
-        let port_handle = ::hal::get_port_with_module(module, channel).ok_or(HalError::InvalidChannel)?;
-        let handle = unsafe { hal_call!(ptr HAL_InitializeSolenoidPort(port_handle))? };
+        let port_handle = ::hal::get_port_with_module(module, channel).ok_or(HalError::InvalidChannel(channel))?;
+        let handle = unsafe { hal_call!(HAL_InitializeSolenoidPort(port_handle))? };
 
         Ok(Solenoid { channel, handle })
     }
 
     pub fn set(&self, on: bool) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetSolenoid(self.handle, on as NativeBool)) }
+        unsafe { hal_call!(HAL_SetSolenoid(self.handle, on as NativeBool)) }
     }
 
     pub fn get(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetSolenoid(self.handle)).map(|n| n != 0) }
+        unsafe { hal_call!(HAL_GetSolenoid(self.handle)).map(|n| n != 0) }
     }
 
     /// Check if this solenoid is blacklisted. If a solenoid is shorted, it is added to a
@@ -60,17 +59,17 @@ impl Solenoid {
     pub fn is_blacklisted(&self, module: i32) -> HalResult<bool> {
         unsafe {
             // returns a "list" of bools packed into an int, with the LSB being index 0
-            hal_call!(ptr HAL_GetPCMSolenoidBlackList(module))
+            hal_call!(HAL_GetPCMSolenoidBlackList(module))
                 .map(|blacklist_bits| blacklist_bits & (1 << self.channel) != 0)
         }
     }
 
     pub fn set_pulse_duration(&self, duration: i32) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetOneShotDuration(self.handle, duration)) }
+        unsafe { hal_call!(HAL_SetOneShotDuration(self.handle, duration)) }
     }
 
     pub fn fire_pulse(&self) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_FireOneShot(self.handle)) }
+        unsafe { hal_call!(HAL_FireOneShot(self.handle)) }
     }
 }
 

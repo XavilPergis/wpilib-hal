@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::ffi::NulError;
 use std::fmt;
 
 /// Result type encompassing most errors that are returned in this library
@@ -9,7 +8,7 @@ pub type HalResult<T> = Result<T, HalError>;
 #[macro_export]
 macro_rules! hal_call {
     // Most HAL functions that have a status code are like this
-    (ptr $function:ident($($arg:expr),*)) => {{
+    ($function:ident($($arg:expr),*)) => {{
         let mut status = 0;
         let result = $function($($arg,)* &mut status as *mut i32);
         if status == 0 { Ok(result) } else { Err($crate::error::HalError::Hal($crate::error::FfiError(status))) }
@@ -43,18 +42,9 @@ impl Error for FfiError {
 pub enum HalError {
     /// An FFI error
     Hal(FfiError),
-    /// A string that was provided contained a null byte and could not be converted into a CString
-    NullError(NulError),
-    /// Tried to create a resource struct, but its handle was already initialized
-    ResourceAlreadyInitialized,
-    /// Module did not have the right device for type
-    BadModuleType,
-    /// Channel did not have the right device for type
-    BadChannelType,
-    /// Tried to give the incorrect type of handle to a robot IO function
-    WrongIoInterface,
-    InvalidChannel,
-    OutOfRange,
+    /// Tried to use a channel that could not be used for whatever type of device this was returned from
+    InvalidChannel(i32),
+    InvalidModule(i32),
     /// Some other custom error
     Other(Box<Error + Send + Sync>),
 }
@@ -63,13 +53,8 @@ impl fmt::Display for HalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             HalError::Hal(ref ffi_err) => ffi_err.description(),
-            HalError::NullError(ref nul_err) => nul_err.description(),
-            HalError::ResourceAlreadyInitialized => "Tried to create a resource that was already initialized",
-            HalError::BadModuleType => "Module did not have the right device for type",
-            HalError::BadChannelType => "Channel did not have the right device for type",
-            HalError::WrongIoInterface => "Tried to give the incorrect type of handle to a robot IO function",
-            HalError::InvalidChannel => "Invalid channel",
-            HalError::OutOfRange => "A channel used does not exist",
+            HalError::InvalidChannel(_) => "Invalid channel",
+            HalError::InvalidModule(_) => "Invalid module",
             HalError::Other(ref err) => err.description(),
         };
 
@@ -80,12 +65,6 @@ impl fmt::Display for HalError {
 impl Error for HalError {
     fn description(&self) -> &str {
         "Error communicating with the HAL"
-    }
-}
-
-impl From<NulError> for HalError {
-    fn from(err: NulError) -> HalError {
-        HalError::NullError(err)
     }
 }
 

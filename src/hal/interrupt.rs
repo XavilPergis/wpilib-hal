@@ -1,10 +1,10 @@
 use std::os::raw::{c_void, c_double};
 use hal::analog_trigger::AnalogTriggerType;
-use hal::types::{InterruptHandle, Handle, DigitalHandle, NativeBool};
+use hal::types::{InterruptHandle, Handle, NativeBool};
 use error::*;
 
-// TODO: can this function pointer actually be nullable?
-pub type InterruptHandlerFunction = Option<unsafe extern "C" fn(interruptAssertedMask: u32, param: *mut c_void)>;
+// Not an Option<T> because we always provide the handler function.
+pub type InterruptHandlerFunction = unsafe extern "C" fn(interruptAssertedMask: u32, param: *mut c_void);
 
 extern "C" {
     fn HAL_InitializeInterrupts(watcher: NativeBool, status: *mut i32) -> InterruptHandle;
@@ -12,12 +12,14 @@ extern "C" {
     fn HAL_WaitForInterrupt(interruptHandle: InterruptHandle, timeout: c_double, ignorePrevious: NativeBool, status: *mut i32) -> i64;
     fn HAL_EnableInterrupts(interruptHandle: InterruptHandle, status: *mut i32);
     fn HAL_DisableInterrupts(interruptHandle: InterruptHandle, status: *mut i32);
+    // TODO
     fn HAL_ReadInterruptRisingTimestamp(interruptHandle: InterruptHandle, status: *mut i32) -> c_double;
     fn HAL_ReadInterruptFallingTimestamp(interruptHandle: InterruptHandle, status: *mut i32) -> c_double;
     fn HAL_RequestInterrupts(interruptHandle: InterruptHandle,
                                  digitalSourceHandle: Handle,
                                  analogTriggerType: AnalogTriggerType,
                                  status: *mut i32);
+
     fn HAL_AttachInterruptHandler(interruptHandle: InterruptHandle,
                                       handler: InterruptHandlerFunction,
                                       param: *mut c_void,
@@ -32,73 +34,68 @@ extern "C" {
                                         status: *mut i32);
 }
 
-#[inline(always)]
-pub unsafe fn initialize_interrupts(watcher: bool) -> HalResult<InterruptHandle> {
-    hal_call!(ptr HAL_InitializeInterrupts(watcher as NativeBool))
+pub struct InterruptHandler {
+    pub(crate) handle: Handle
 }
 
-#[inline(always)]
-pub unsafe fn clean_interrupts(handle: InterruptHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_CleanInterrupts(handle))
+impl InterruptHandler {
+    pub fn new(watcher: bool) -> HalResult<Self> {
+        unsafe {
+            hal_call!(HAL_InitializeInterrupts(watcher as NativeBool))
+                .map(|handle| InterruptHandler { handle })
+        }
+    }
+
+    pub fn clean(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_CleanInterrupts(self.handle)) }
+    }
+/**
+ * In synchronous mode, wait for the defined interrupt to occur.
+ * @param timeout Timeout in seconds
+ * @param ignorePrevious If true, ignore interrupts that happened before
+ * waitForInterrupt was called.
+ * @return The mask of interrupts that fired.
+ */
+    pub fn wait(&self, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
+        unsafe { hal_call!(HAL_WaitForInterrupt(self.handle, timeout as c_double, ignore_previous as NativeBool)) }
+    }
+
+    pub fn enable(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_EnableInterrupts(self.handle)) }
+    }
+
+    pub fn disable(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_DisableInterrupts(self.handle)) }
+    }
+
+    // TODO: Does F need to be Send or Sync?
+    // Static lifetime is required because references onto a stack frame could persist while the
+    // stack frame is freed.
+    pub fn attach_handler<F: Fn(u32) + 'static>(&self, mut func: F) -> HalResult<()> {
+        // Ok so this function might need a little bit of explaining.
+
+        // The interrupt handler register takes a function pointer and a void pointer as a user param.
+        // Whenever an interrupt is received, the HAL calls out `handler` function with the user param
+        // that we pssed in.
+        // All we do here is pass in our closure as a user parameter and call it in the handler.
+        #[inline(never)]
+        unsafe extern "C" fn handler<F: Fn(u32)>(mask: u32, param: *mut c_void) {
+            let func = param as *mut F;
+            (*func)(mask);
+        }
+
+        unsafe {
+            // turn our closure into a void pointer
+            let user_param = &mut func as *mut _ as *mut c_void;
+            // we need to parameterize `handler` because it cannot use the `F` of the parent scope.
+            hal_call!(HAL_AttachInterruptHandler(self.handle, handler::<F>, user_param))
+        }
+    }
 }
 
-#[inline(always)]
-pub unsafe fn wait_for_interrupt(handle: InterruptHandle, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
-    hal_call!(ptr HAL_WaitForInterrupt(handle, timeout, ignore_previous as NativeBool))
-}
-
-#[inline(always)]
-pub unsafe fn enable_interrupts(handle: InterruptHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_EnableInterrupts(handle))
-}
-
-#[inline(always)]
-pub unsafe fn disable_interrupts(handle: InterruptHandle) -> HalResult<()> {
-    hal_call!(ptr HAL_DisableInterrupts(handle))
-}
-
-#[inline(always)]
-pub unsafe fn read_interrupt_rising_timestamp(handle: InterruptHandle) -> HalResult<f64> {
-    hal_call!(ptr HAL_ReadInterruptRisingTimestamp(handle))
-}
-
-#[inline(always)]
-pub unsafe fn read_interrupt_falling_timestamp(handle: InterruptHandle) -> HalResult<f64> {
-    hal_call!(ptr HAL_ReadInterruptFallingTimestamp(handle))
-}
-
-#[inline(always)]
-pub unsafe fn request_interrupts(handle: InterruptHandle, digital_source_handle: DigitalHandle, analog_trigger_type: AnalogTriggerType) -> HalResult<()> {
-    hal_call!(ptr HAL_RequestInterrupts(handle, digital_source_handle, analog_trigger_type))
-}
-
-#[inline(never)]
-unsafe extern "C" fn interrupt_handler_cb<F>(interrupt_asserted_mask: u32, closure: *mut c_void) where F: Fn(u32) {
-    let opt_closure = closure as *mut Option<F>;
-    (*opt_closure).take().unwrap()(interrupt_asserted_mask as u32);
-}
-
-/// Attach a handler that is activated when the handle recieves an interrupt
-///
-/// ## Example
-/// ```rust,no_run
-/// interrupt::attach_interrupt_handler(5, |mask| {
-///     println!("Handler called! {}", mask);
-/// })
-/// ```
-#[inline(always)]
-pub unsafe fn attach_interrupt_handler<F>(handle: InterruptHandle, mut handler: F) -> HalResult<()> where F: Fn(u32) {
-    let extern_handler = &mut handler as *mut _ as *mut c_void;
-    hal_call!(ptr HAL_AttachInterruptHandler(handle, Some(interrupt_handler_cb::<F>), extern_handler))
-}
-
-#[inline(always)]
-pub unsafe fn attach_interrupt_handler_threaded<F>(handle: InterruptHandle, mut handler: F) -> HalResult<()> where F: Fn(u32) {
-    let extern_handler = &mut handler as *mut _ as *mut c_void;
-    hal_call!(ptr HAL_AttachInterruptHandlerThreaded(handle, Some(interrupt_handler_cb::<F>), extern_handler))
-}
-
-#[inline(always)]
-pub unsafe fn set_interrupt_up_source_edge(handle: InterruptHandle, rising_edge: bool, falling_edge: bool) -> HalResult<()> {
-    hal_call!(ptr HAL_SetInterruptUpSourceEdge(handle, rising_edge as NativeBool, falling_edge as NativeBool))
+impl Drop for InterruptHandler {
+    fn drop(&mut self) {
+        // AGAIN, this function has a status param that isn't used
+        unsafe { HAL_CleanInterrupts(self.handle, ::std::ptr::null_mut()) }
+    }
 }

@@ -17,9 +17,9 @@ extern "C" {
 }
 
 #[derive(Debug)]
-struct Compressor {
-    module: i32,
-    handle: i32,
+pub struct Compressor {
+    pub(crate) module: i32,
+    pub(crate) handle: i32,
 }
 
 impl Compressor {
@@ -29,52 +29,52 @@ impl Compressor {
     }
 
     pub fn initialize(module: i32) -> HalResult<Self> {
-        let handle = unsafe { hal_call!(ptr HAL_InitializeCompressor(module))? };
+        let handle = unsafe { hal_call!(HAL_InitializeCompressor(module))? };
         
         Ok(Compressor { module, handle })
     }
 
     pub fn enabled(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressor(self.handle)).map(|n| n != 0) }
+        unsafe { hal_call!(HAL_GetCompressor(self.handle)).map(|n| n != 0) }
     }
 
     pub fn pressure_switch_low(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorPressureSwitch(self.handle)).map(|n| n != 0) }
+        unsafe { hal_call!(HAL_GetCompressorPressureSwitch(self.handle)).map(|n| n != 0) }
     }
 
     pub fn set_closed_loop_control(&self, closed_loop: bool) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetCompressorClosedLoopControl(self.handle, closed_loop as NativeBool)) }
+        unsafe { hal_call!(HAL_SetCompressorClosedLoopControl(self.handle, closed_loop as NativeBool)) }
     }
 
     pub fn get_closed_loop_control(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorClosedLoopControl(self.handle)).map(|n| n != 0) }
+        unsafe { hal_call!(HAL_GetCompressorClosedLoopControl(self.handle)).map(|n| n != 0) }
     }
 
     pub fn get_current(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetCompressorCurrent(self.handle)).map(|a| a as f64) }
+        unsafe { hal_call!(HAL_GetCompressorCurrent(self.handle)).map(|a| a as f64) }
     }
     
     pub fn get_current_too_high_sticky_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorCurrentTooHighStickyFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorCurrentTooHighStickyFault(self.handle)).map(|a| a != 0) }
     }
     
     pub fn get_current_too_high_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorCurrentTooHighFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorCurrentTooHighFault(self.handle)).map(|a| a != 0) }
     }
     
     pub fn get_shorted_sticky_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorShortedStickyFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorShortedStickyFault(self.handle)).map(|a| a != 0) }
     }
     
     pub fn get_shorted_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorShortedFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorShortedFault(self.handle)).map(|a| a != 0) }
     }
     
     pub fn get_not_connected_sticky_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorNotConnectedStickyFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorNotConnectedStickyFault(self.handle)).map(|a| a != 0) }
     }
     
     pub fn get_not_connected_fault(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetCompressorNotConnectedFault(self.handle)).map(|a| a != 0) }
+        unsafe { hal_call!(HAL_GetCompressorNotConnectedFault(self.handle)).map(|a| a != 0) }
     }
 }

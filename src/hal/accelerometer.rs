@@ -40,20 +40,20 @@ pub fn set_accelerometer_range(range: AccelerometerRange) {
     }
 }
 
-/// Gets the acceleromenter's X (Left/right) value. Returns a value in units of 1 g-force.
+/// Get the acceleromenter's X (Left/right) value. The value returned is in units of 1 g-force.
 #[inline(always)]
 pub fn get_accelerometer_x() -> f64 {
-    unsafe { HAL_GetAccelerometerX() }
+    unsafe { HAL_GetAccelerometerX() as f64 }
 }
 
-/// Gets the acceleromenter's Y (Front/back) value. Returns a value in units of 1 g-force.
+/// Get the acceleromenter's Y (Front/back) value. The value returned is in units of 1 g-force.
 #[inline(always)]
 pub fn get_accelerometer_y() -> f64 {
-    unsafe { HAL_GetAccelerometerY() }
+    unsafe { HAL_GetAccelerometerY() as f64 }
 }
 
-/// Gets the acceleromenter's Z (Top/bottom) value. Returns a value in units of 1 g-force.
+/// Get the acceleromenter's Z (Top/bottom) value. The value returned is in units of 1 g-force.
 #[inline(always)]
 pub fn get_accelerometer_z() -> f64 {
-    unsafe { HAL_GetAccelerometerZ() }
+    unsafe { HAL_GetAccelerometerZ() as f64 }
 }

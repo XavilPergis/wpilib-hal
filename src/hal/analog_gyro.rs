@@ -18,60 +18,60 @@ extern "C" {
     fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
 }
 
-struct AnalogGyro<'i> {
-    channel: &'i AnalogInput,
+pub struct AnalogGyro<'i> {
+    _channel: &'i AnalogInput,
     handle: GyroHandle
 }
 
 impl<'i> AnalogGyro<'i> {
-    fn new(channel: &'i AnalogInput) -> HalResult<Self> {
+    pub fn new(channel: &'i AnalogInput) -> HalResult<Self> {
         unsafe {
-            let handle = hal_call!(ptr HAL_InitializeAnalogGyro(channel.port))?;
-            hal_call!(ptr HAL_SetupAnalogGyro(handle))?;
-            hal_call!(ptr HAL_CalibrateAnalogGyro(handle))?;
-            Ok(AnalogGyro { channel, handle })
+            let handle = hal_call!(HAL_InitializeAnalogGyro(channel.port))?;
+            hal_call!(HAL_SetupAnalogGyro(handle))?;
+            hal_call!(HAL_CalibrateAnalogGyro(handle))?;
+            Ok(AnalogGyro { _channel: channel, handle })
         }
     }
 
     // TODO: is it possible to change configuration after initialization
-    fn with_parameters(channel: &'i AnalogInput, sensitivity: f64, offset: f64, center: i32) -> HalResult<Self> {
+    pub fn with_parameters(channel: &'i AnalogInput, sensitivity: f64, offset: f64, center: i32) -> HalResult<Self> {
         let gyro = AnalogGyro::new(channel)?;
-        unsafe { hal_call!(ptr HAL_SetAnalogGyroParameters(gyro.handle, sensitivity, offset, center))?; }
+        unsafe { hal_call!(HAL_SetAnalogGyroParameters(gyro.handle, sensitivity, offset, center))?; }
         gyro.reset()?;
         Ok(gyro)
     }
 
     /// Sensitivity in volts/degree/second
-    fn set_sensitivity(&self, vds: f64) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogGyroVoltsPerDegreePerSecond(self.handle, vds)) }
+    pub fn set_sensitivity(&self, vds: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetAnalogGyroVoltsPerDegreePerSecond(self.handle, vds)) }
     }
     
-    fn reset(&self) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_ResetAnalogGyro(self.handle)) }
+    pub fn reset(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_ResetAnalogGyro(self.handle)) }
     }
     
-    fn calibrate(&self) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_CalibrateAnalogGyro(self.handle)) }
+    pub fn calibrate(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_CalibrateAnalogGyro(self.handle)) }
     }
     
-    fn set_deadband(&self, volts: f64) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogGyroDeadband(self.handle, volts)) }
+    pub fn set_deadband(&self, volts: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetAnalogGyroDeadband(self.handle, volts)) }
     }
     
-    fn get_angle(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogGyroAngle(self.handle)) }
+    pub fn get_angle(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogGyroAngle(self.handle)) }
     }
     
-    fn get_rate(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogGyroRate(self.handle)) }
+    pub fn get_rate(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogGyroRate(self.handle)) }
     }
     
-    fn get_offset(&self) -> HalResult<f64> {
-        unsafe { hal_call!(ptr HAL_GetAnalogGyroOffset(self.handle)) }
+    pub fn get_offset(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetAnalogGyroOffset(self.handle)) }
     }
     
-    fn get_center(&self) -> HalResult<i32> {
-        unsafe { hal_call!(ptr HAL_GetAnalogGyroCenter(self.handle)) }
+    pub fn get_center(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetAnalogGyroCenter(self.handle)) }
     }
 }
 

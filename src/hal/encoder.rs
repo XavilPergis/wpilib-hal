@@ -57,115 +57,112 @@ extern "C" {
     pub fn HAL_GetEncodingType(encoderHandle: EncoderHandle, status: *mut i32) -> EncodingType;
 }
 
-#[inline(always)]
-pub fn initialize(source_handle_a: Handle, trigger_type_a: AnalogTriggerType,
-                  source_handle_b: Handle, trigger_type_b: AnalogTriggerType,
-                  reverse_direction: bool, encoding_type: EncodingType)
-                  -> HalResult<EncoderHandle> {
-    unsafe { hal_call!(ptr HAL_InitializeEncoder(source_handle_a, trigger_type_a, source_handle_b, trigger_type_b, reverse_direction as NativeBool, encoding_type)) }
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub struct Encoder {
+    pub(crate) handle: Handle,
 }
 
-#[inline(always)]
-pub fn free(handle: EncoderHandle) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_FreeEncoder(handle)) }
+impl Encoder {
+    pub fn initialize(source_handle_a: Handle, trigger_type_a: AnalogTriggerType,
+                      source_handle_b: Handle, trigger_type_b: AnalogTriggerType,
+                      reverse_direction: bool, encoding_type: EncodingType)
+                      -> HalResult<Self> {
+        unsafe {
+            hal_call!(HAL_InitializeEncoder(source_handle_a, trigger_type_a,
+                                                source_handle_b, trigger_type_b,
+                                                reverse_direction as NativeBool, encoding_type))
+                                                .map(|handle| Encoder { handle })
+        }
+    }
+
+    pub fn free(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_FreeEncoder(self.handle)) }
+    }
+
+    pub fn get(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetEncoder(self.handle)) }
+    }
+
+    pub fn get_raw(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetEncoderRaw(self.handle)) }
+    }
+
+    pub fn get_encoding_scale(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetEncoderEncodingScale(self.handle)) }
+    }
+
+    pub fn reset(&self) -> HalResult<()> {
+        unsafe { hal_call!(HAL_ResetEncoder(self.handle)) }
+    }
+
+    pub fn get_period(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetEncoderPeriod(self.handle)) }
+    }
+
+    pub fn set_max_period(&self, max_period: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderMaxPeriod(self.handle, max_period)) }
+    }
+
+    pub fn get_stopped(&self) -> HalResult<bool> {
+        unsafe { hal_call!(HAL_GetEncoderStopped(self.handle)).map(|n| n != 0) }
+    }
+
+    pub fn get_direction(&self) -> HalResult<bool> {
+        unsafe { hal_call!(HAL_GetEncoderDirection(self.handle)).map(|n| n != 0) }
+    }
+
+    pub fn get_distance(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetEncoderDistance(self.handle)) }
+    }
+
+    pub fn get_rate(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetEncoderRate(self.handle)) }
+    }
+
+    pub fn set_min_rate(&self, min_rate: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderMinRate(self.handle, min_rate)) }
+    }
+
+    pub fn set_distance_per_pulse(&self, distance_per_pulse: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderDistancePerPulse(self.handle, distance_per_pulse)) }
+    }
+
+    pub fn set_reverse_direction(&self, reverse: NativeBool) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderReverseDirection(self.handle, reverse)) }
+    }
+
+    pub fn set_samples_to_average(&self, samples_to_average: i32) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderSamplesToAverage(self.handle, samples_to_average)) }
+    }
+
+    pub fn get_samples_to_average(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetEncoderSamplesToAverage(self.handle)) }
+    }
+
+    pub fn set_index_source(&self, digital_source_handle: Handle, trigger_type: AnalogTriggerType, indexing_type: IndexingType) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetEncoderIndexSource(self.handle, digital_source_handle, trigger_type, indexing_type)) }
+    }
+
+    pub fn get_fpga_index(&self) -> HalResult<i32> {
+        unsafe { hal_call!(HAL_GetEncoderFPGAIndex(self.handle)) }
+    }
+
+    pub fn get_decoding_scale_factor(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetEncoderDecodingScaleFactor(self.handle)) }
+    }
+
+    pub fn get_distance_per_pulse(&self) -> HalResult<f64> {
+        unsafe { hal_call!(HAL_GetEncoderDistancePerPulse(self.handle)) }
+    }
+
+    pub fn get_encoding_type(&self) -> HalResult<EncodingType> {
+        unsafe { hal_call!(HAL_GetEncodingType(self.handle)).map(Into::into) }
+    }
 }
 
-#[inline(always)]
-pub fn get(handle: EncoderHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetEncoder(handle)) }
-}
-
-#[inline(always)]
-pub fn get_raw(handle: EncoderHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetEncoderRaw(handle)) }
-}
-
-#[inline(always)]
-pub fn get_encoding_scale(handle: EncoderHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetEncoderEncodingScale(handle)) }
-}
-
-#[inline(always)]
-pub fn reset(handle: EncoderHandle) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_ResetEncoder(handle)) }
-}
-
-#[inline(always)]
-pub fn get_period(handle: EncoderHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetEncoderPeriod(handle)) }
-}
-
-#[inline(always)]
-pub fn set_max_period(handle: EncoderHandle, max_period: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderMaxPeriod(handle, max_period)) }
-}
-
-#[inline(always)]
-pub fn get_stopped(handle: EncoderHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetEncoderStopped(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_direction(handle: EncoderHandle) -> HalResult<bool> {
-    unsafe { hal_call!(ptr HAL_GetEncoderDirection(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn get_distance(handle: EncoderHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetEncoderDistance(handle)) }
-}
-
-#[inline(always)]
-pub fn get_rate(handle: EncoderHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetEncoderRate(handle)) }
-}
-
-#[inline(always)]
-pub fn set_min_rate(handle: EncoderHandle, min_rate: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderMinRate(handle, min_rate)) }
-}
-
-#[inline(always)]
-pub fn set_distance_per_pulse(handle: EncoderHandle, distance_per_pulse: f64) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderDistancePerPulse(handle, distance_per_pulse)) }
-}
-
-#[inline(always)]
-pub fn set_reverse_direction(handle: EncoderHandle, reverse: NativeBool) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderReverseDirection(handle, reverse)) }
-}
-
-#[inline(always)]
-pub fn set_samples_to_average(handle: EncoderHandle, samples_to_average: i32) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderSamplesToAverage(handle, samples_to_average)) }
-}
-
-#[inline(always)]
-pub fn get_samples_to_average(handle: EncoderHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetEncoderSamplesToAverage(handle)) }
-}
-
-#[inline(always)]
-pub fn set_index_source(handle: EncoderHandle, digital_source_handle: Handle, trigger_type: AnalogTriggerType, indexing_type: IndexingType) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_SetEncoderIndexSource(handle, digital_source_handle, trigger_type, indexing_type)) }
-}
-
-#[inline(always)]
-pub fn get_fpga_index(handle: EncoderHandle) -> HalResult<i32> {
-    unsafe { hal_call!(ptr HAL_GetEncoderFPGAIndex(handle)) }
-}
-
-#[inline(always)]
-pub fn get_decoding_scale_factor(handle: EncoderHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetEncoderDecodingScaleFactor(handle)) }
-}
-
-#[inline(always)]
-pub fn get_distance_per_pulse(handle: EncoderHandle) -> HalResult<f64> {
-    unsafe { hal_call!(ptr HAL_GetEncoderDistancePerPulse(handle)) }
-}
-
-#[inline(always)]
-pub fn get_encoding_type(handle: EncoderHandle) -> HalResult<EncodingType> {
-    unsafe { hal_call!(ptr HAL_GetEncodingType(handle)).map(Into::into) }
+impl Drop for Encoder {
+    fn drop(&mut self) {
+        // AGAIN, another unused status parameter
+        unsafe { HAL_FreeEncoder(self.handle, ::std::ptr::null_mut()); }
+    }
 }

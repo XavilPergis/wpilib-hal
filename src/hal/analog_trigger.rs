@@ -27,7 +27,7 @@ pub enum AnalogTriggerType {
 
 #[derive(Debug)]
 pub struct AnalogTrigger<'i> { 
-    input: &'i AnalogInput,
+    _input: &'i AnalogInput,
     port: i32,
     index: i32,
 }
@@ -36,40 +36,40 @@ impl<'i> AnalogTrigger<'i> {
     pub fn new(channel: &'i AnalogInput) -> HalResult<Self> {
         unsafe {
             let mut index = 0;
-            let port = hal_call!(ptr HAL_InitializeAnalogTrigger(channel.port, &mut index))?;
+            let port = hal_call!(HAL_InitializeAnalogTrigger(channel.port, &mut index))?;
 
-            Ok(AnalogTrigger { input: channel, port, index })
+            Ok(AnalogTrigger { _input: channel, port, index })
         }
     }
 
     pub fn set_limits_raw(&self, limits: Range<i32>) -> HalResult<()> {
         // end > start is checked in the HAL
-        unsafe { hal_call!(ptr HAL_SetAnalogTriggerLimitsRaw(self.port, limits.start, limits.end)) }
+        unsafe { hal_call!(HAL_SetAnalogTriggerLimitsRaw(self.port, limits.start, limits.end)) }
     }
 
     pub fn set_limits_voltage(&self, limits: Range<f64>) -> HalResult<()> {
         // end > start is checked in the HAL
-        unsafe { hal_call!(ptr HAL_SetAnalogTriggerLimitsVoltage(self.port, limits.start, limits.end)) }
+        unsafe { hal_call!(HAL_SetAnalogTriggerLimitsVoltage(self.port, limits.start, limits.end)) }
     }
 
     pub fn set_averaged(&self, averaged: bool) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogTriggerAveraged(self.port, averaged as NativeBool)) }
+        unsafe { hal_call!(HAL_SetAnalogTriggerAveraged(self.port, averaged as NativeBool)) }
     }
 
     pub fn set_filtered(&self, filtered: bool) -> HalResult<()> {
-        unsafe { hal_call!(ptr HAL_SetAnalogTriggerFiltered(self.port, filtered as NativeBool)) }
+        unsafe { hal_call!(HAL_SetAnalogTriggerFiltered(self.port, filtered as NativeBool)) }
     }
 
     pub fn in_window(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetAnalogTriggerInWindow(self.port)).map(|n| n!= 0) }
+        unsafe { hal_call!(HAL_GetAnalogTriggerInWindow(self.port)).map(|n| n!= 0) }
     }
 
     pub fn get_trigger_state(&self) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetAnalogTriggerTriggerState(self.port)).map(|n| n!= 0) }
+        unsafe { hal_call!(HAL_GetAnalogTriggerTriggerState(self.port)).map(|n| n!= 0) }
     }
 
     pub fn get_trigger_output(&self, trigger_type: AnalogTriggerType) -> HalResult<bool> {
-        unsafe { hal_call!(ptr HAL_GetAnalogTriggerOutput(self.port, trigger_type)).map(|n| n!= 0) }
+        unsafe { hal_call!(HAL_GetAnalogTriggerOutput(self.port, trigger_type)).map(|n| n!= 0) }
     }
 }
 
@@ -84,6 +84,6 @@ impl<'i> Drop for AnalogTrigger<'i> {
         // }
         //
         // Yeah, so the status never gets set, so it's fine to unwrap
-        unsafe { hal_call!(ptr HAL_CleanAnalogTrigger(self.port)).unwrap(); }
+        unsafe { hal_call!(HAL_CleanAnalogTrigger(self.port)).unwrap(); }
     }
 }

@@ -18,7 +18,7 @@ pub enum I2cPort {
 
 #[inline(always)]
 pub fn initialize(port: I2cPort) -> HalResult<()> {
-    unsafe { hal_call!(ptr HAL_InitializeI2C(port)) }
+    unsafe { hal_call!(HAL_InitializeI2C(port)) }
 }
 
 #[inline(always)]
