@@ -13,6 +13,7 @@ extern "C" {
     fn HAL_WaitForNotifierAlarm(handle: NotifierHandle, status: *mut i32);
 }
 
+#[derive(Debug)]
 pub struct Notifier {
     pub(crate) handle: Handle,
     thread_running: Arc<AtomicBool>,

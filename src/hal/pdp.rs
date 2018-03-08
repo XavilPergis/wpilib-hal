@@ -19,6 +19,7 @@ extern "C" {
 fn check_channel(channel: i32) -> bool { unsafe { HAL_CheckPDPChannel(channel) != 0 } }
 fn check_module(channel: i32) -> bool { unsafe { HAL_CheckPDPModule(channel) != 0 } }
 
+#[derive(Debug)]
 pub struct PowerDistributionPanel {
     pub(crate) module: i32,
 }

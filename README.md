@@ -14,7 +14,7 @@ WPILibC and WPILibJ, and the library headers used in this crate can be found [he
 Progress:
 ---------
 
-Designs are not final, and a ceanup pass needs to be done after everything is wrapped. During this pass, the HAL implementation will be reviewed and as many functions that can currently error as possible will be replaced with non-erroring variants.
+Designs are not final, and a ceanup pass needs to be done after everything is wrapped. During this pass, the HAL implementation will be reviewed and as many functions that can currently error as possible will be replaced with non-erroring variants. Some other things like usage reporting also need to be done.
 
 Here is a list of thigs that currently have wrappers:
   - Onboard Accelerometer
@@ -22,20 +22,21 @@ Here is a list of thigs that currently have wrappers:
   - Analog Gyro
   - Analog Trigger
   - Compressor
+  - Digital I/O
   - Encoder
   - Interrupt Handler
   - Hardware Timer
   - Power Distribution Panel
   - Relays
+  - Serial I/O
   - Solenoids
   - Miscellaneous
 
 Here is a list of things to be worked on/wrapped:
   - CAN Transmission
   - Digital Counter
-  - Digital I/O
+  - Digital Glitch Filter
   - I2C
   - Driver Station & Joysticks
   - PWM
-  - Serial I/O
   - SPI

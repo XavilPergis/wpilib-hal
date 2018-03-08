@@ -18,6 +18,7 @@ extern "C" {
     fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
 }
 
+#[derive(Debug)]
 pub struct AnalogGyro<'i> {
     _channel: &'i AnalogInput,
     handle: GyroHandle

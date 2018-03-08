@@ -1,6 +1,6 @@
 use error::*;
-use hal::types::{PortHandle, DigitalHandle, NativeBool};
-use std::os::raw::c_double;
+use hal::types::*;
+use std::os::raw::*;
 
 extern "C" {
     fn HAL_InitializePWMPort(handle: PortHandle, status: *mut i32) -> DigitalHandle;
@@ -44,108 +44,20 @@ pub struct PwmConfig {
     pub min_pwm: i32,
 }
 
-#[inline(always)]
-pub fn initialize(handle: PortHandle) -> HalResult<DigitalHandle> {
-    unsafe { hal_call!(HAL_InitializePWMPort(handle)) }
+#[derive(Debug)]
+pub struct Pwm {
+    pub(crate) handle: Handle,
 }
 
-#[inline(always)]
-pub fn free(handle: DigitalHandle) -> HalResult<()> {
-    unsafe { hal_call!(HAL_FreePWMPort(handle)) }
-}
-
-#[inline(always)]
-pub fn check_channel(channel: i32) -> bool {
-    unsafe { HAL_CheckPWMChannel(channel) != 0 }
-}
-
-#[inline(always)]
-pub fn set_config(handle: DigitalHandle, max_pwm: f64, deadband_max_pwm: f64, center_pwm: f64, deadband_min_pwm: f64, min_pwm: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMConfig(handle, max_pwm, deadband_max_pwm, center_pwm, deadband_min_pwm, min_pwm)) }
-}
-
-#[inline(always)]
-pub fn set_config_raw(handle: DigitalHandle, cfg: PwmConfig) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMConfigRaw(handle, cfg.max_pwm, cfg.deadband_max_pwm, cfg.center_pwm, cfg.deadband_min_pwm, cfg.min_pwm)) }
-}
-
-#[inline(always)]
-pub fn get_config_raw(handle: DigitalHandle) -> HalResult<PwmConfig> {
-    unsafe {
-        // Create a zeroed struct. Will either be filled, or an Err will be returned
-        // and cfg will be dropped
-        let mut cfg: PwmConfig = ::std::mem::zeroed();
-
-        // &mut T can be coerced to *mut T
-        hal_call!(HAL_GetPWMConfigRaw(
-            handle,
-            &mut cfg.max_pwm,
-            &mut cfg.deadband_max_pwm,
-            &mut cfg.center_pwm,
-            &mut cfg.deadband_min_pwm,
-            &mut cfg.min_pwm
-        ))?;
-
-        Ok(cfg)
+impl Pwm {
+    fn initialize(port: PortHandle) -> HalResult<Self> {
+        unsafe { hal_call!(HAL_InitializePWMPort(port)).map(|handle| Pwm { handle }) }
     }
 }
 
-#[inline(always)]
-pub fn set_eliminate_deadband(handle: DigitalHandle, eliminate_deadband: bool) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMEliminateDeadband(handle, eliminate_deadband as NativeBool)) }
-}
-
-#[inline(always)]
-pub fn get_eliminate_deadband(handle: DigitalHandle) -> HalResult<bool> {
-    unsafe { hal_call!(HAL_GetPWMEliminateDeadband(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn set_raw(handle: DigitalHandle, value: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMRaw(handle, value)) }
-}
-
-#[inline(always)]
-pub fn set_speed(handle: DigitalHandle, speed: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMSpeed(handle, speed)) }
-}
-
-#[inline(always)]
-pub fn set_position(handle: DigitalHandle, position: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMPosition(handle, position)) }
-}
-
-#[inline(always)]
-pub fn set_disabled(handle: DigitalHandle) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMDisabled(handle)) }
-}
-
-#[inline(always)]
-pub fn get_raw(handle: DigitalHandle) -> HalResult<i32> {
-    unsafe { hal_call!(HAL_GetPWMRaw(handle)) }
-}
-
-#[inline(always)]
-pub fn get_speed(handle: DigitalHandle) -> HalResult<f64> {
-    unsafe { hal_call!(HAL_GetPWMSpeed(handle)) }
-}
-
-#[inline(always)]
-pub fn get_position(handle: DigitalHandle) -> HalResult<f64> {
-    unsafe { hal_call!(HAL_GetPWMPosition(handle)) }
-}
-
-#[inline(always)]
-pub fn latch_zero(handle: DigitalHandle) -> HalResult<()> {
-    unsafe { hal_call!(HAL_LatchPWMZero(handle)) }
-}
-
-#[inline(always)]
-pub fn set_period_scale(handle: DigitalHandle, squelch_mask: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetPWMPeriodScale(handle, squelch_mask)) }
-}
-
-#[inline(always)]
-pub fn get_loop_timing() -> HalResult<i32> {
-    unsafe { hal_call!(HAL_GetLoopTiming()) }
+impl Drop for Pwm {
+    fn drop(&mut self) {
+        // Ok this one can fail, but what are we supposed to do other than panic here?
+        // unsafe { HAL_FreePWMPort(self.handle) }
+    }
 }

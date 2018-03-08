@@ -6,6 +6,8 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
+#![deny(missing_debug_implementations)]
+
 extern crate backtrace;
 
 /// Contains aggregate error types and macros for calling FFI functions

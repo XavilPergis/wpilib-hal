@@ -10,7 +10,7 @@ extern "C" {
                      call_stack: *const c_char,
                      print_msg: NativeBool) -> i32;
     fn HAL_GetControlWord(control_word: *mut u32) -> i32;
-    fn HAL_GetAllianceStation(status: *mut i32) -> AllianceStationID;
+    fn HAL_GetAllianceStation(status: *mut i32) -> AllianceStation;
     fn HAL_GetMatchTime(status: *mut i32) -> c_double;
     fn HAL_GetMatchInfo(info: *mut MatchInfo) -> c_int;
     fn HAL_FreeMatchInfo(info: *mut MatchInfo);
@@ -48,11 +48,34 @@ pub fn get_control_word() -> HalResult<ControlWord> {
 }
 
 #[repr(i32)]
-pub enum AllianceStationID {
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum AllianceStation {
     Red1, Red2, Red3, Blue1, Blue2, Blue3,
 }
 
+impl AllianceStation {
+    pub fn is_red(&self) -> bool {
+        use self::AllianceStation::*;
+        match *self {
+            Red1 | Red2 | Red3 => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_blue(&self) -> bool { !self.is_red() }
+
+    pub fn station(&self) -> usize {
+        use self::AllianceStation::*;
+        match *self {
+            Red1 | Blue1 => 1,
+            Red2 | Blue2 => 2,
+            Red3 | Blue3 => 3,
+        }
+    }
+}
+
 #[repr(C)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MatchType {
     None,
     Practice,
@@ -61,6 +84,7 @@ pub enum MatchType {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct MatchInfo {
     event_name: *mut c_char,
     match_type: MatchType,
@@ -88,7 +112,7 @@ pub fn match_time() -> HalResult<f64> {
 }
 
 // what in fresh hell does this function do when the FMS is detached or the DS is offline????
-// pub fn get_alliance_station() -> HalResult<AllianceStationID> {
+// pub fn get_alliance_station() -> HalResult<AllianceStation> {
 //     unsafe { hal_call!(HAL_GetAllianceStation()) }
 // }
 

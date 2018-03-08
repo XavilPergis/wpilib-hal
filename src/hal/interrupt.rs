@@ -34,30 +34,45 @@ extern "C" {
                                         status: *mut i32);
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum SyncWaitResult {
+    Timeout, RisingEdge, FallingEdge, Both,
+}
+
+/// Synchronous interrupt handler. Users of the API will need to explicitly call `wait` and wait
+/// for an interrupt to happen.
+#[derive(Debug)]
+pub struct InterruptHandlerSync {
+    pub(crate) handle: Handle
+}
+
+impl InterruptHandlerSync {
+    pub fn new() -> HalResult<Self> {
+        unsafe {
+            // sync version, set watcher to false
+            hal_call!(HAL_InitializeInterrupts(0)).map(|handle| InterruptHandlerSync { handle })
+        }
+    }
+
+    /// Wait at most `timeout` seconds for an interrupt to occur.
+    pub fn wait(&self, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
+        unsafe { hal_call!(HAL_WaitForInterrupt(self.handle, timeout as c_double, ignore_previous as NativeBool)) }
+    }
+}
+
+/// Asynchronous interrupt handler. Users of the API provide a function to be called every time
+/// an interrupt is fired.
+#[derive(Debug)]
 pub struct InterruptHandler {
     pub(crate) handle: Handle
 }
 
 impl InterruptHandler {
-    pub fn new(watcher: bool) -> HalResult<Self> {
+    pub fn new() -> HalResult<Self> {
         unsafe {
-            hal_call!(HAL_InitializeInterrupts(watcher as NativeBool))
-                .map(|handle| InterruptHandler { handle })
+            // async version, set watcher to true
+            hal_call!(HAL_InitializeInterrupts(1)).map(|handle| InterruptHandler { handle })
         }
-    }
-
-    pub fn clean(&self) -> HalResult<()> {
-        unsafe { hal_call!(HAL_CleanInterrupts(self.handle)) }
-    }
-/**
- * In synchronous mode, wait for the defined interrupt to occur.
- * @param timeout Timeout in seconds
- * @param ignorePrevious If true, ignore interrupts that happened before
- * waitForInterrupt was called.
- * @return The mask of interrupts that fired.
- */
-    pub fn wait(&self, timeout: f64, ignore_previous: bool) -> HalResult<i64> {
-        unsafe { hal_call!(HAL_WaitForInterrupt(self.handle, timeout as c_double, ignore_previous as NativeBool)) }
     }
 
     pub fn enable(&self) -> HalResult<()> {

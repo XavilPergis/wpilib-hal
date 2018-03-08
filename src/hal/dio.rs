@@ -1,113 +1,139 @@
 use error::*;
-use hal::types::{PortHandle, DigitalHandle, DigitalPwmHandle, NativeBool};
+use hal::types::*;
+use std::os::raw::*;
 
 extern "C" {
     fn HAL_InitializeDIOPort(handle: PortHandle, input: NativeBool, status: *mut i32) -> DigitalHandle;
     fn HAL_CheckDIOChannel(channel: i32) -> NativeBool;
     fn HAL_FreeDIOPort(handle: DigitalHandle);
-    fn HAL_AllocateDigitalPWM(status: *mut i32) -> DigitalPwmHandle;
-    fn HAL_FreeDigitalPWM(pwmGenerator: DigitalPwmHandle, status: *mut i32);
-    fn HAL_SetDigitalPWMRate(rate: ::std::os::raw::c_double, status: *mut i32);
-    fn HAL_SetDigitalPWMDutyCycle(pwmGenerator: DigitalPwmHandle, dutyCycle: ::std::os::raw::c_double, status: *mut i32);
-    fn HAL_SetDigitalPWMOutputChannel(pwmGenerator: DigitalPwmHandle, channel: i32, status: *mut i32);
     fn HAL_SetDIO(handle: DigitalHandle, value: NativeBool, status: *mut i32);
     fn HAL_GetDIO(handle: DigitalHandle, status: *mut i32) -> NativeBool;
-    fn HAL_GetDIODirection(handle: DigitalHandle, status: *mut i32) -> NativeBool;
-    fn HAL_Pulse(handle: DigitalHandle, pulseLength: ::std::os::raw::c_double, status: *mut i32);
+    // fn HAL_SetDIODirection(handle: DigitalHandle, input: NativeBool, status: *mut i32);
+    // fn HAL_GetDIODirection(handle: DigitalHandle, status: *mut i32) -> NativeBool;
+    fn HAL_Pulse(handle: DigitalHandle, pulse_length: c_double, status: *mut i32);
     fn HAL_IsPulsing(handle: DigitalHandle, status: *mut i32) -> NativeBool;
-    fn HAL_IsAnyPulsing(status: *mut i32) -> NativeBool;
-    fn HAL_SetFilterSelect(handle: DigitalHandle, filterIndex: i32, status: *mut i32);
+    // fn HAL_IsAnyPulsing(status: *mut i32) -> NativeBool;
+    fn HAL_SetFilterSelect(handle: DigitalHandle, filter_index: i32, status: *mut i32);
     fn HAL_GetFilterSelect(handle: DigitalHandle, status: *mut i32) -> i32;
-    fn HAL_SetFilterPeriod(filterIndex: i32, value: i64, status: *mut i32);
-    fn HAL_GetFilterPeriod(filterIndex: i32, status: *mut i32) -> i64;
+    fn HAL_SetFilterPeriod(filter_index: i32, value: i64, status: *mut i32);
+    fn HAL_GetFilterPeriod(filter_index: i32, status: *mut i32) -> i64;
+
+    fn HAL_AllocateDigitalPWM(status: *mut i32) -> DigitalPwmHandle;
+    fn HAL_FreeDigitalPWM(pwm: DigitalPwmHandle, status: *mut i32);
+    fn HAL_SetDigitalPWMRate(rate: c_double, status: *mut i32);
+    fn HAL_SetDigitalPWMDutyCycle(pwm: DigitalPwmHandle, duty_cycle: c_double, status: *mut i32);
+    fn HAL_SetDigitalPWMOutputChannel(pwm: DigitalPwmHandle, channel: i32, status: *mut i32);
 }
 
-#[inline(always)]
-pub fn initialize_dio_port(handle: PortHandle, input: bool) -> HalResult<DigitalHandle> {
-    unsafe { hal_call!(HAL_InitializeDIOPort(handle, input as NativeBool)) }
-}
-
-#[inline(always)]
-pub fn check_dio_channel(channel: i32) -> bool {
+fn check_digital_channel(channel: i32) -> bool {
     unsafe { HAL_CheckDIOChannel(channel) != 0 }
 }
 
-#[inline(always)]
-pub fn free_dio_port(dio_port_handle: DigitalHandle) {
-    unsafe { HAL_FreeDIOPort(dio_port_handle) }
+#[derive(Debug)]
+struct DigitalIO {
+    handle: Handle,
+    channel: i32,
 }
 
-#[inline(always)]
-pub fn allocate_digital_pwm() -> HalResult<DigitalPwmHandle> {
-    unsafe { hal_call!(HAL_AllocateDigitalPWM()) }
+impl DigitalIO {
+    fn new(channel: i32, input: bool) -> HalResult<Self> {
+        if !check_digital_channel(channel) { return Err(HalError::InvalidChannel(channel)); }
+        let port = ::hal::get_port(channel).ok_or(HalError::InvalidChannel(channel))?;
+
+        unsafe {
+            hal_call!(HAL_InitializeDIOPort(port, input as NativeBool))
+                .map(|handle| DigitalIO { handle, channel })
+        }
+    }
 }
 
-#[inline(always)]
-pub fn free_digital_pwm(pwm_generator: DigitalPwmHandle) -> HalResult<()> {
-    unsafe { hal_call!(HAL_FreeDigitalPWM(pwm_generator)) }
+impl Drop for DigitalIO {
+    fn drop(&mut self) {
+        unsafe { HAL_FreeDIOPort(self.handle); }
+    }
 }
 
-#[inline(always)]
-pub fn set_digital_pwm_rate(rate: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetDigitalPWMRate(rate)) }
+#[derive(Debug)]
+pub struct DigitalInput {
+    dio: DigitalIO
 }
 
-#[inline(always)]
-pub fn set_digital_pwm_duty_cycle(pwm_generator: DigitalPwmHandle, duty_cycle: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetDigitalPWMDutyCycle(pwm_generator, duty_cycle)) }
+impl DigitalInput {
+    pub fn new(channel: i32) -> HalResult<Self> {
+        Ok(DigitalInput { dio: DigitalIO::new(channel, true)? })
+    }
+
+    pub fn get(&self) -> HalResult<bool> {
+        unsafe { hal_call!(HAL_GetDIO(self.dio.handle)).map(|val| val != 0) }
+    }
 }
 
-#[inline(always)]
-pub fn set_digital_pwm_output_channel(pwm_generator: DigitalPwmHandle, channel: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetDigitalPWMOutputChannel(pwm_generator, channel)) }
+#[derive(Debug)]
+pub struct DigitalOutput {
+    dio: DigitalIO
 }
 
-#[inline(always)]
-pub fn set_dio(handle: DigitalHandle, value: bool) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetDIO(handle, value as NativeBool)) }
+impl DigitalOutput {
+    pub fn new(channel: i32) -> HalResult<Self> {
+        Ok(DigitalOutput { dio: DigitalIO::new(channel, false)? })
+    }
+
+    pub fn as_pwm_output(&mut self) -> HalResult<PwmGenerator> { PwmGenerator::new(self) }
+
+    pub fn get(&self) -> HalResult<bool> {
+        unsafe { hal_call!(HAL_GetDIO(self.dio.handle)).map(|val| val != 0) }
+    }
+
+    pub fn set(&self, value: bool) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetDIO(self.dio.handle, value as NativeBool)) }
+    }
+
+    pub fn pulse(&self, length: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_Pulse(self.dio.handle, length as c_double)) }
+    }
+
+    pub fn is_pulsing(&self) -> HalResult<bool> {
+        unsafe { hal_call!(HAL_IsPulsing(self.dio.handle)).map(|val| val != 0) }
+    }
 }
 
-#[inline(always)]
-pub fn get_dio(handle: DigitalHandle) -> HalResult<bool> {
-    unsafe { hal_call!(HAL_GetDIO(handle)).map(|n| n != 0) }
+/// Struct to generate a PWM signal on a digital output rather than controlling on/off manually.
+#[derive(Debug)]
+pub struct PwmGenerator<'out> {
+    _output: &'out DigitalOutput,
+    pwm_handle: Handle
 }
 
-#[inline(always)]
-pub fn get_dio_direction(handle: DigitalHandle) -> HalResult<bool> {
-    unsafe { hal_call!(HAL_GetDIODirection(handle)).map(|n| n != 0) }
+impl<'out> PwmGenerator<'out> {
+    fn new(output: &'out DigitalOutput) -> HalResult<Self> {
+        unsafe {
+            // a digital pwm generator is a digital output
+            let pwm_handle = hal_call!(HAL_AllocateDigitalPWM())?;
+            // Point the PWM generator at our digital output
+            hal_call!(HAL_SetDigitalPWMOutputChannel(pwm_handle, output.dio.channel))?;
+
+            Ok(PwmGenerator { _output: output, pwm_handle })
+        }
+    }
+
+    /// Set the global PWM generator rate.
+    pub fn set_rate(rate: f64) -> HalResult<()> {
+        unsafe { hal_call!(HAL_SetDigitalPWMRate(rate as c_double)) }
+    }
+
+    /// Set the duty cycle. Panics if `duty_cycle` is not in 0..1.
+    pub fn set_duty_cycle(&self, duty_cycle: f64) -> HalResult<()> {
+        if duty_cycle > 1.0 || duty_cycle < 0.0 {
+            panic!("Duty cycle out of range. Expected range is [0, 1], but the actual value was {}", duty_cycle);
+        }
+
+        unsafe { hal_call!(HAL_SetDigitalPWMDutyCycle(self.pwm_handle, duty_cycle as c_double)) }
+    }
 }
 
-#[inline(always)]
-pub fn pulse(handle: DigitalHandle, pulse_length: f64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_Pulse(handle, pulse_length)) }
-}
-
-#[inline(always)]
-pub fn is_pulsing(handle: DigitalHandle) -> HalResult<bool> {
-    unsafe { hal_call!(HAL_IsPulsing(handle)).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn is_any_pulsing() -> HalResult<bool> {
-    unsafe { hal_call!(HAL_IsAnyPulsing()).map(|n| n != 0) }
-}
-
-#[inline(always)]
-pub fn set_filter_select(handle: DigitalHandle, filter_index: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetFilterSelect(handle, filter_index)) }
-}
-
-#[inline(always)]
-pub fn get_filter_select(handle: DigitalHandle) -> HalResult<i32> {
-    unsafe { hal_call!(HAL_GetFilterSelect(handle)) }
-}
-
-#[inline(always)]
-pub fn set_filter_period(filter_index: i32, value: i64) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetFilterPeriod(filter_index, value)) }
-}
-
-#[inline(always)]
-pub fn get_filter_period(filter_index: i32) -> HalResult<i64> {
-    unsafe { hal_call!(HAL_GetFilterPeriod(filter_index)) }
+impl<'out> Drop for PwmGenerator<'out> {
+    fn drop(&mut self) {
+        // Unused status param
+        unsafe { HAL_FreeDigitalPWM(self.pwm_handle, ::std::ptr::null_mut()) }
+    }
 }

@@ -44,6 +44,20 @@ pub struct Descriptor {
     _button_count: u8,
 }
 
+impl ::std::fmt::Debug for Descriptor {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        f.debug_struct("Descriptor")
+            .field("is_xbox", &self.is_xbox)
+            .field("stick_type", &self.stick_type)
+            .field("name", &&self.name[..]) // bugger
+            .field("_axis_count", &self._axis_count)
+            .field("axis_types", &self.axis_types)
+            .field("_pov_count", &self._pov_count)
+            .field("_button_count", &self._button_count)
+            .finish()
+    }
+}
+
 impl Descriptor {
     pub fn name<'a>(&'a self) -> String {
         let slice = &self.name[..];
@@ -74,10 +88,12 @@ impl Axes {
     }
 }
 
+#[derive(Debug)]
 struct XboxController {
     numer: i32,
 }
 
+#[derive(Debug)]
 pub struct Joystick {
     pub(crate) number: i32,
 }

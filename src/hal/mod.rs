@@ -25,6 +25,7 @@ pub mod relay;
 pub mod serial;
 pub mod solenoid;
 pub mod spi;
+pub mod usage_reporting;
 
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -46,7 +47,6 @@ extern "C" {
     pub fn HAL_GetPortWithModule(module: i32, channel: i32) -> PortHandle;
     pub fn HAL_GetFPGATime(status: *mut i32) -> u64;
     pub fn HAL_Initialize(timeout: i32, mode: i32) -> NativeBool;
-    pub fn HAL_Report(resource: i32, instanceNumber: i32, context: i32, feature: *const c_char) -> i64;
 }
 
 macro_rules! num_ports {
@@ -183,75 +183,4 @@ pub fn hal_initialize(timeout: i32, mode: i32) -> bool {
     }));
 
     unsafe { HAL_Initialize(timeout, mode) != 0 }
-}
-
-#[repr(i32)]
-pub enum ResourceType {
-    Controller = 0,
-    Module = 1,
-    Language = 2,
-    CANPlugin = 3,
-    Accelerometer = 4,
-    ADXL345 = 5,
-    AnalogChannel = 6,
-    AnalogTrigger = 7,
-    AnalogTriggerOutput = 8,
-    CANJaguar = 9,
-    Compressor = 10,
-    Counter = 11,
-    Dashboard = 12,
-    DigitalInput = 13,
-    DigitalOutput = 14,
-    DriverStationCIO = 15,
-    DriverStationEIO = 16,
-    DriverStationLCD = 17,
-    Encoder = 18,
-    GearTooth = 19,
-    Gyro = 20,
-    I2C = 21,
-    Framework = 22,
-    Jaguar = 23,
-    Joystick = 24,
-    Kinect = 25,
-    KinectStick = 26,
-    PIDController = 27,
-    Preferences = 28,
-    PWM = 29,
-    Relay = 30,
-    RobotDrive = 31,
-    SerialPort = 32,
-    Servo = 33,
-    Solenoid = 34,
-    SPI = 35,
-    Task = 36,
-    Ultrasonic = 37,
-    Victor = 38,
-    Button = 39,
-    Command = 40,
-    AxisCamera = 41,
-    PCVideoServer = 42,
-    SmartDashboard = 43,
-    Talon = 44,
-    HiTechnicColorSensor = 45,
-    HiTechnicAccel = 46,
-    HiTechnicCompass = 47,
-    SRF08 = 48,
-    AnalogOutput = 49,
-    VictorSP = 50,
-    PWMTalonSRX = 51,
-    CANTalonSRX = 52,
-    ADXL362 = 53,
-    ADXRS450 = 54,
-    RevSPARK = 55,
-    MindsensorsSD540 = 56,
-    DigitalFilter = 57,
-    ADIS16448 = 58,
-    PDP = 59,
-    PCM = 60,
-    PigeonIMU = 61,
-    NidecBrushless = 62,
-}
-
-pub fn report(resource: ResourceType, instance_number: i32, context: i32, feature: &[u8]) -> i64 {
-    unsafe { HAL_Report(resource as i32, instance_number, context, feature.as_ptr() as *const c_char) }
 }
