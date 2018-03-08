@@ -17,9 +17,4 @@ pub mod error;
 /// Contains bindings to the HAL
 #[macro_use]
 pub mod hal;
-
-#[allow(dead_code)]
-#[allow(non_camel_case_types, non_snake_case)]
-mod raw;
-
 pub use hal::*;

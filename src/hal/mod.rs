@@ -1,6 +1,5 @@
 use error::*;
 use types::*;
-use raw::*;
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
@@ -47,6 +46,7 @@ extern "C" {
     pub fn HAL_GetPortWithModule(module: i32, channel: i32) -> PortHandle;
     pub fn HAL_GetFPGATime(status: *mut i32) -> u64;
     pub fn HAL_Initialize(timeout: i32, mode: i32) -> NativeBool;
+    pub fn HAL_GetSystemClockTicksPerMicrosecond() -> i32;
 }
 
 macro_rules! num_ports {
