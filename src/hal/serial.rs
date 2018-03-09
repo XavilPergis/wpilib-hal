@@ -83,10 +83,7 @@ impl Serial {
 
     /// Set the amount of data bits per transfer. Valid values are between 5 and 8.
     pub fn set_data_bits(&self, bits: i32) -> HalResult<()> {
-        if bits > 8 || bits < 5 {
-            panic!("Serial data bits out of range. Expected range is [5, 8], but actual value was {}", bits);
-        }
-
+        require_value_between!(bits, 5, 8);
         unsafe { hal_call!(HAL_SetSerialDataBits(self.port, bits)) }
     }
 

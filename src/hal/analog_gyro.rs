@@ -16,7 +16,7 @@ extern "C" {
     fn HAL_GetAnalogGyroRate(handle: GyroHandle, status: *mut i32) -> c_double;
     fn HAL_GetAnalogGyroOffset(handle: GyroHandle, status: *mut i32) -> c_double;
     fn HAL_GetAnalogGyroCenter(handle: GyroHandle, status: *mut i32) -> i32;
-}
+    }
 
 #[derive(Debug)]
 pub struct AnalogGyro<'i> {

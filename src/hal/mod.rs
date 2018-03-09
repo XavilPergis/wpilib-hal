@@ -26,13 +26,6 @@ pub mod solenoid;
 pub mod spi;
 pub mod usage_reporting;
 
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum RuntimeType {
-    Native = 0,
-    Mock = 1,
-}
-
 extern "C" {
     pub fn HAL_GetErrorMessage(code: i32) -> *const c_char;
     pub fn HAL_GetFPGAVersion(status: *mut i32) -> i32;
@@ -47,6 +40,13 @@ extern "C" {
     pub fn HAL_GetFPGATime(status: *mut i32) -> u64;
     pub fn HAL_Initialize(timeout: i32, mode: i32) -> NativeBool;
     pub fn HAL_GetSystemClockTicksPerMicrosecond() -> i32;
+}
+
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum RuntimeType {
+    Native = 0,
+    Mock = 1,
 }
 
 macro_rules! num_ports {

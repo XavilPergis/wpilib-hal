@@ -10,6 +10,14 @@
 
 extern crate backtrace;
 
+macro_rules! require_value_between {
+    ($val:expr, $low:expr, $high:expr) => {
+        if $val > $high || $val < $low {
+            panic!("Value out of bounds. Range is {} to {}, but the actual value was {}", $low, $high, $val);
+        }
+    };
+}
+
 /// Contains aggregate error types and macros for calling FFI functions
 #[macro_use]
 pub mod error;
