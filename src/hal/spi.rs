@@ -1,42 +1,34 @@
+use std::os::raw::*;
 use error::*;
-use hal::types::NativeBool;
+use hal::types::*;
+use hal::analog_trigger::AnalogTriggerType;
 
 extern "C" {
-    pub fn HAL_InitializeSPI(port: SpiPort, status: *mut i32);
-    pub fn HAL_TransactionSPI(port: SpiPort, dataToSend: *const u8,
-                              dataReceived: *mut u8, size: i32) -> i32;
-    pub fn HAL_WriteSPI(port: SpiPort, dataToSend: *const u8, sendSize: i32) -> i32;
-    pub fn HAL_ReadSPI(port: SpiPort, buffer: *mut u8, count: i32) -> i32;
-    pub fn HAL_CloseSPI(port: SpiPort);
-    pub fn HAL_SetSPISpeed(port: SpiPort, speed: i32);
-    pub fn HAL_SetSPIOpts(port: SpiPort, msbFirst: NativeBool,
-                          sampleOnTrailing: NativeBool, clkIdleHigh: NativeBool);
-    pub fn HAL_SetSPIChipSelectActiveHigh(port: SpiPort, status: *mut i32);
-    pub fn HAL_SetSPIChipSelectActiveLow(port: SpiPort, status: *mut i32);
-    pub fn HAL_GetSPIHandle(port: SpiPort) -> i32;
-    pub fn HAL_SetSPIHandle(port: SpiPort, handle: i32);
-    pub fn HAL_InitSPIAccumulator(port: SpiPort, period: i32, cmd: i32,
-                                  xferSize: i32, validMask: i32,
-                                  validValue: i32, dataShift: i32,
-                                  dataSize: i32, isSigned: NativeBool,
-                                  bigEndian: NativeBool, status: *mut i32);
-    pub fn HAL_FreeSPIAccumulator(port: SpiPort, status: *mut i32);
-    pub fn HAL_ResetSPIAccumulator(port: SpiPort, status: *mut i32);
-    pub fn HAL_SetSPIAccumulatorCenter(port: SpiPort, center: i32,
-                                       status: *mut i32);
-    pub fn HAL_SetSPIAccumulatorDeadband(port: SpiPort, deadband: i32,
-                                         status: *mut i32);
-    pub fn HAL_GetSPIAccumulatorLastValue(port: SpiPort, status: *mut i32) -> i32;
-    pub fn HAL_GetSPIAccumulatorValue(port: SpiPort, status: *mut i32) -> i64;
-    pub fn HAL_GetSPIAccumulatorCount(port: SpiPort, status: *mut i32) -> i64;
-    pub fn HAL_GetSPIAccumulatorAverage(port: SpiPort, status: *mut i32)
-     -> ::std::os::raw::c_double;
-    pub fn HAL_GetSPIAccumulatorOutput(port: SpiPort, value: *mut i64,
-                                       count: *mut i64, status: *mut i32);
+    fn HAL_InitializeSPI(port: SpiPort, status: *mut i32);
+    fn HAL_TransactionSPI(port: SpiPort, to_send: *const u8, received: *mut u8, size: i32) -> i32;
+    fn HAL_WriteSPI(port: SpiPort, to_send: *const u8, size: i32) -> i32;
+    fn HAL_ReadSPI(port: SpiPort, buffer: *mut u8, count: i32) -> i32;
+    fn HAL_CloseSPI(port: SpiPort);
+    fn HAL_SetSPISpeed(port: SpiPort, speed: i32);
+    fn HAL_SetSPIOpts(port: SpiPort, msb_first: NativeBool, sample_on_trailing: NativeBool, clock_idle_high: NativeBool);
+    fn HAL_SetSPIChipSelectActiveHigh(port: SpiPort, status: *mut i32);
+    fn HAL_SetSPIChipSelectActiveLow(port: SpiPort, status: *mut i32);
+    fn HAL_SetSPIHandle(port: SpiPort, handle: i32);
+    fn HAL_GetSPIHandle(port: SpiPort) -> i32;
+
+    fn HAL_InitSPIAuto(port: SpiPort, buffer_size: i32, status: *mut i32);
+    fn HAL_FreeSPIAuto(port: SpiPort, status: *mut i32);
+    fn HAL_StartSPIAutoRate(port: SpiPort, period: c_double, status: *mut i32);
+    fn HAL_StartSPIAutoTrigger(port: SpiPort, digital_source: Handle, trigger_type: AnalogTriggerType, trigger_rising: NativeBool, trigger_falling: NativeBool, status: *mut i32);
+    fn HAL_StopSPIAuto(port: SpiPort, status: *mut i32);
+    fn HAL_SetSPIAutoTransmitData(port: SpiPort, to_send: *const u8, data_size: i32, zero_size: i32, status: *mut i32);
+    fn HAL_ForceSPIAutoRead(port: SpiPort, status: *mut i32);
+    fn HAL_ReadSPIAutoReceivedData(port: SpiPort, buffer: *mut u8, num_to_read: i32, timeout: c_double, status: *mut i32) -> i32;
+    fn HAL_GetSPIAutoDroppedCount(port: SpiPort, status: *mut i32) -> i32;
 }
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 #[repr(i32)]
 pub enum SpiPort {
     CS0 = 0,
@@ -46,115 +38,144 @@ pub enum SpiPort {
     MXP,
 }
 
-pub fn initialize(port: SpiPort) -> HalResult<()> {
-    unsafe { hal_call!(HAL_InitializeSPI(port)) }
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum SampleEdge {
+    RisingEdge,
+    FallingEdge,
 }
 
-// NOTE: size must be in the range [0,7]
-pub fn transaction(port: SpiPort, send_buffer: &[u8], recv_buffer: &mut [u8], size: i32) -> i32 {
-    unsafe { HAL_TransactionSPI(port, send_buffer.as_ptr(), recv_buffer.as_mut_ptr(), size) }
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum Polarity {
+    ActiveHigh,
+    ActiveLow,
 }
 
-pub fn write(port: SpiPort, buffer: &[u8]) -> i32 {
-    unsafe { HAL_WriteSPI(port, buffer.as_ptr(), buffer.len() as i32) }
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum BitDirection {
+    MsbFirst,
+    LsbFirst,
 }
 
-pub fn read(port: SpiPort, buffer: &mut [u8]) -> i32 {
-    unsafe { HAL_ReadSPI(port, buffer.as_mut_ptr(), buffer.len() as i32) }
+use std::io::{self, Read, Write};
+use std::cell::Cell;
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Spi {
+    port: SpiPort,
+    msb_first: Cell<bool>,
+    // When to measure the data signal based on the clock
+    sample_on_trailing: Cell<bool>,
+    // Whether or not a high clock signal means idle
+    clock_idle_high: Cell<bool>,
 }
 
-pub fn close(port: SpiPort) {
-    unsafe { HAL_CloseSPI(port) }
+impl Spi {
+    pub fn initialize(port: SpiPort) -> HalResult<Self> {
+        unsafe { hal_call!(HAL_InitializeSPI(port))?; }
+
+        Ok(Spi {
+            port,
+            msb_first: Cell::new(false),
+            sample_on_trailing: Cell::new(false),
+            clock_idle_high: Cell::new(false)
+        })
+    }
+
+    /// Do a read and write at the same time. Panics if the lengths of the buffers differ.
+    pub fn transaction(&self, send_buf: &[u8], recv_buf: &mut [u8]) -> io::Result<usize> {
+        if send_buf.len() != recv_buf.len() {
+            panic!("Tried to do a SPI transaction but the send and received buffers differed in length. Send buffer was {} bytes long, Receive buffer was {} bytes long", send_buf.len(), recv_buf.len());
+        }
+
+        let res = unsafe {
+            HAL_TransactionSPI(self.port, send_buf.as_ptr() as *const u8,
+                               recv_buf.as_mut_ptr() as *mut u8, send_buf.len() as i32)
+        };
+
+        if res == -1 {
+            Err(io::Error::from(io::ErrorKind::Other))
+        } else {
+            Ok(res as usize)
+        }
+    }
+
+    fn update_options(&self) {
+        unsafe {
+            HAL_SetSPIOpts(self.port,
+                           self.msb_first.get() as NativeBool,
+                           self.sample_on_trailing.get() as NativeBool,
+                           self.clock_idle_high.get() as NativeBool)
+        }
+    }
+
+    /// Configure the SPI port to send either the most or least significant bit first.
+    pub fn set_msb_first(&self, direction: BitDirection) {
+        self.msb_first.set(match direction {
+            BitDirection::MsbFirst => true,
+            BitDirection::LsbFirst => false,
+        });
+        self.update_options();
+    }
+
+    /// Set on which edge of the clock signal data should be sampled.
+    pub fn set_sample_edge(&self, edge: SampleEdge) {
+        self.sample_on_trailing.set(match edge {
+            SampleEdge::FallingEdge => true,
+            SampleEdge::RisingEdge => false,
+        });
+        self.update_options();
+    }
+
+    /// Set whether a high clock signal means idle or active.
+    pub fn set_clock_polarity(&self, polarity: Polarity) {
+        self.clock_idle_high.set(match polarity {
+            Polarity::ActiveHigh => false,
+            Polarity::ActiveLow => true,
+        });
+        self.update_options();
+    }
+
+    // Set the clock rate in hertz. Panics if the speed is above the maximum value of 4,000,000.
+    pub fn set_speed(&self, speed: i32) {
+        require_value_between!(speed, 0, 4_000_000);
+        unsafe { HAL_SetSPISpeed(self.port, speed) }
+    }
+
+    pub fn set_chip_select_polarity(&self, polarity: Polarity) -> HalResult<()> {
+        match polarity {
+            Polarity::ActiveHigh => unsafe { hal_call!(HAL_SetSPIChipSelectActiveHigh(self.port)) },
+            Polarity::ActiveLow => unsafe { hal_call!(HAL_SetSPIChipSelectActiveLow(self.port)) },
+        }
+    }
 }
 
-pub fn set_speed(port: SpiPort, speed: i32) {
-    unsafe { HAL_SetSPISpeed(port, speed) }
+impl Read for Spi {
+    // NOTE: panics if the buffer size does not fit into an i32
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let res = unsafe { HAL_ReadSPI(self.port, buf.as_mut_ptr() as *mut u8, buf.len() as i32) };
+        if res == -1 {
+            Err(io::Error::from(io::ErrorKind::Other))
+        } else {
+            Ok(res as usize)
+        }
+    }
 }
 
-pub fn set_opts(port: SpiPort, msb_first: bool, sample_on_trailing: bool, clock_idle_high: bool) {
-    unsafe { HAL_SetSPIOpts(port,
-                   msb_first as NativeBool,
-                   sample_on_trailing as NativeBool,
-                   clock_idle_high as NativeBool) }
+impl Write for Spi {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let res = unsafe { HAL_WriteSPI(self.port, buf.as_ptr() as *const u8, buf.len() as i32) };
+        if res == -1 {
+            Err(io::Error::from(io::ErrorKind::Other))
+        } else {
+            Ok(res as usize)
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-pub fn set_chip_select_active_high(port: SpiPort) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetSPIChipSelectActiveHigh(port)) }
-}
-
-pub fn set_chip_select_active_low(port: SpiPort) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetSPIChipSelectActiveLow(port)) }
-}
-
-pub fn get_handle(port: SpiPort) -> i32 {
-    unsafe { HAL_GetSPIHandle(port) }
-}
-
-pub fn set_handle(port: SpiPort, handle: i32) {
-    unsafe { HAL_SetSPIHandle(port, handle) }
-}
-
-pub fn init_accumulator(port: SpiPort,
-                               period: i32, 
-                               cmd: i32,
-                               transfer_size: i32,
-                               valid_mask: i32,
-                               valid_value: i32,
-                               data_shift: i32,
-                               data_size: i32,
-                               is_signed: bool, 
-                               big_endian: bool)
-                               -> HalResult<()> {
-    unsafe { hal_call!(HAL_InitSPIAccumulator(port, 
-              period, 
-              cmd, 
-              transfer_size, 
-              valid_mask, 
-              valid_value, 
-              data_shift, 
-              data_size, 
-              is_signed as NativeBool, 
-              big_endian as NativeBool)) }
-}
-
-pub fn free_accumulator(port: SpiPort) -> HalResult<()> {
-    unsafe { hal_call!(HAL_FreeSPIAccumulator(port)) }
-}
-
-pub fn reset_accumulator(port: SpiPort) -> HalResult<()> {
-    unsafe { hal_call!(HAL_ResetSPIAccumulator(port)) }
-}
-
-pub fn set_accumulator_center(port: SpiPort, center: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetSPIAccumulatorCenter(port, center)) }
-}
-
-pub fn set_accumulator_deadband(port: SpiPort, deadband: i32) -> HalResult<()> {
-    unsafe { hal_call!(HAL_SetSPIAccumulatorDeadband(port, deadband)) }
-}
-
-pub fn hal_get_accumulator_last_value(port: SpiPort) -> HalResult<i32> {
-    unsafe { hal_call!(HAL_GetSPIAccumulatorLastValue(port)) }
-}
-
-pub fn hal_get_accumulator_value(port: SpiPort) -> HalResult<i64> {
-    unsafe { hal_call!(HAL_GetSPIAccumulatorValue(port)) }
-}
-
-pub fn hal_get_accumulator_count(port: SpiPort) -> HalResult<i64> {
-    unsafe { hal_call!(HAL_GetSPIAccumulatorCount(port)) }
-}
-
-pub fn hal_get_accumulator_average(port: SpiPort) -> HalResult<f64> {
-    unsafe { hal_call!(HAL_GetSPIAccumulatorAverage(port)) }
-}
-
-/// value, count
-pub fn get_accumulator_output(port: SpiPort) -> HalResult<(i64, i64)> {
-    unsafe {
-        let mut value = 0;
-        let mut count = 0;
-        hal_call!(HAL_GetSPIAccumulatorOutput(port, &mut value, &mut count))?;
-        Ok((value, count))
+impl Drop for Spi {
+    fn drop(&mut self) {
+        unsafe { HAL_CloseSPI(self.port); }
     }
 }
