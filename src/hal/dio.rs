@@ -123,10 +123,7 @@ impl<'out> PwmGenerator<'out> {
 
     /// Set the duty cycle. Panics if `duty_cycle` is not in 0..1.
     pub fn set_duty_cycle(&self, duty_cycle: f64) -> HalResult<()> {
-        if duty_cycle > 1.0 || duty_cycle < 0.0 {
-            panic!("Duty cycle out of range. Expected range is [0, 1], but the actual value was {}", duty_cycle);
-        }
-
+        require_value_between!(duty_cycle, 0.0, 1.0);
         unsafe { hal_call!(HAL_SetDigitalPWMDutyCycle(self.pwm_handle, duty_cycle as c_double)) }
     }
 }
